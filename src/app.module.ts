@@ -9,7 +9,10 @@ import { BloodPressureModule } from './blood-pressure/blood-pressure.module'
 	imports: [
 		ConfigModule.forRoot({
 			isGlobal: true,
-			validationSchema: Joi.object({ MONGODB_CONNECTION_STRING: Joi.string().required() }),
+			validationSchema: Joi.object({
+				PORT: Joi.number().default(3000),
+				MONGODB_CONNECTION_STRING: Joi.string().required(),
+			}),
 		}),
 		MongooseModule.forRootAsync({
 			imports: [ConfigModule],
