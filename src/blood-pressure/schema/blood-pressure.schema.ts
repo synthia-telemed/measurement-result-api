@@ -13,11 +13,17 @@ export class BloodPressure extends Document {
 	@Prop({ required: true })
 	dateTime: Date
 
-	@Prop({ required: true })
-	value: number
-
 	@Prop({ required: true, type: MetadataSchema })
 	metadata: Metadata
+
+	@Prop({ required: true })
+	systolic: number
+
+	@Prop({ required: true })
+	diastolic: number
+
+	@Prop({ required: true })
+	pulse: number
 }
 
 export const BloodPressureSchema = SchemaFactory.createForClass(BloodPressure)
