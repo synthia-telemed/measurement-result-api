@@ -10,8 +10,7 @@ export class BloodPressureController {
 
 	@Post()
 	@Roles(UserRole.PATIENT)
-	async createBloodPressure(@User() user: UserInfo, @Body() data: CreateBloodPressureDto) {
-		console.log(user)
-		return this.bloodPressureService.create(data, 10)
+	async createBloodPressure(@User() { id }: UserInfo, @Body() data: CreateBloodPressureDto) {
+		return this.bloodPressureService.create(data, id)
 	}
 }
