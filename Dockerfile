@@ -8,4 +8,5 @@ COPY ./ ./
 RUN pnpm build
 ENV NODE_ENV=production
 RUN pnpm prune --prod
-CMD ["pnpm", "start"]
+ENTRYPOINT [ "node" ]
+CMD [ "dist/main.js" ]
