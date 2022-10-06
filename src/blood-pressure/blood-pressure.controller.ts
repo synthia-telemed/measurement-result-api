@@ -23,7 +23,7 @@ export class BloodPressureController {
 	@Roles(UserRole.PATIENT)
 	@ApiOperation({ description: 'Record blood pressure' })
 	@ApiTags('Patient')
-	@ApiBearerAuth('JWSToken')
+	@ApiBearerAuth()
 	@ApiCreatedResponse({ type: BloodPressure })
 	@ApiBadRequestResponse({ description: 'Invalid data' })
 	@ApiUnauthorizedResponse({ description: 'Unauthorized' })

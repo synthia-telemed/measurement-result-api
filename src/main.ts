@@ -14,13 +14,7 @@ async function bootstrap() {
 
 	const config = new DocumentBuilder()
 		.setTitle('Synthia Measurement Result API')
-		.addBearerAuth({
-			type: 'http',
-			scheme: 'bearer',
-			bearerFormat: 'JWT',
-			name: 'JWSToken',
-			in: 'header',
-		})
+		.addBearerAuth()
 		.addServer('/measurement', 'Production')
 		.addServer('/', 'Local Development')
 		.build()

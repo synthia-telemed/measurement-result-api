@@ -13,8 +13,10 @@ export class RolesGuard implements CanActivate {
 		}
 
 		const req = ctx.switchToHttp().getRequest()
+		const userRole = req.headers['x-user-role']
+		if (!userRole) throw new BadRequestException('Invalid user role')
 		let role: UserRole
-		switch ((req.headers['x-user-role'] as string).toLowerCase()) {
+		switch ((userRole as string).toLowerCase()) {
 			case UserRole.PATIENT:
 				role = UserRole.PATIENT
 				break
