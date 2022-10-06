@@ -4,7 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import * as Joi from 'joi'
 import { AppController } from './app.controller'
 import { BloodPressureModule } from './blood-pressure/blood-pressure.module'
-import { GlucoseModule } from './glucose/glucose.module';
+import { GlucoseModule } from './glucose/glucose.module'
 
 @Module({
 	imports: [
