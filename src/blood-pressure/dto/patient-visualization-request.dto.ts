@@ -14,9 +14,5 @@ export class PatientBloodPressureVisualizationRequestDto {
 
 	@ApiProperty()
 	@IsDateString()
-	startDate: Date
-
-	@ApiProperty()
-	@IsDateString()
-	endDate: Date
+	date: Date
 }

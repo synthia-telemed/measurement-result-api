@@ -42,15 +42,15 @@ export class BloodPressureController {
 	@ApiOkResponse({ type: BloodPressureVisualizationResponseDto })
 	async getBloodPressurePatientVisualization(
 		@User() { id }: UserInfo,
-		@Body() { startDate, endDate, granularity }: PatientBloodPressureVisualizationRequestDto
+		@Body() { date, granularity }: PatientBloodPressureVisualizationRequestDto
 	): Promise<BloodPressureVisualizationResponseDto> {
 		let isNumerical = false
 		let data: BloodPressureVisualizationData[]
 		if (granularity === Granularity.DAY) {
 			isNumerical = true
-			data = await this.bloodPressureService.getWithinTheDay(id, startDate, endDate)
+			data = await this.bloodPressureService.getWithinTheDay(id, date)
 		} else {
-			data = await this.bloodPressureService.getAverageWithCategoricalLabel(id, startDate, endDate, granularity)
+			data = await this.bloodPressureService.getAverageWithCategoricalLabel(id, date, granularity)
 		}
 		return {
 			xLabel: this.getXLabel(granularity),
