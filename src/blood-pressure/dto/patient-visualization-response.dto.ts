@@ -3,7 +3,7 @@ import { VisualizationResponseDto } from 'src/dto/visualization-response.dto'
 
 export class BloodPressureVisualizationData {
 	@ApiProperty()
-	label: string
+	label: string | number
 
 	@ApiProperty({ isArray: true, type: Number })
 	values?: number[]

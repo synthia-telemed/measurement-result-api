@@ -11,7 +11,7 @@ import {
 } from '@nestjs/swagger'
 import { Roles, UserRole } from 'src/decorator/roles.decorator'
 import { User, UserInfo } from 'src/decorator/user.decorstor'
-import { BloodPressureService } from './blood-pressure.service'
+import { BloodPressureService, BloodPressureVisualizationData } from './blood-pressure.service'
 import { CreateBloodPressureDto } from './dto/create-blood-pressure.dto'
 import { Granularity, PatientBloodPressureVisualizationRequestDto } from './dto/patient-visualization-request.dto'
 import { BloodPressureVisualizationResponseDto } from './dto/patient-visualization-response.dto'
@@ -44,15 +44,30 @@ export class BloodPressureController {
 		@User() { id }: UserInfo,
 		@Body() { startDate, endDate, granularity }: PatientBloodPressureVisualizationRequestDto
 	): Promise<BloodPressureVisualizationResponseDto> {
+		let isNumerical = false
+		let data: BloodPressureVisualizationData[]
 		if (granularity === Granularity.DAY) {
-			return
+			isNumerical = true
+			data = await this.bloodPressureService.getWithinTheDay(id, startDate, endDate)
+		} else {
+			data = await this.bloodPressureService.getAverageWithCategoricalLabel(id, startDate, endDate, granularity)
 		}
-		const data = await this.bloodPressureService.getAverageWithCategoricalLabel(id, startDate, endDate, granularity)
 		return {
-			xLabel: Granularity.WEEK ? 'Date' : 'Week',
+			xLabel: this.getXLabel(granularity),
 			unit: 'mmHG',
-			isNumerical: false,
+			isNumerical,
 			data,
+		}
+	}
+
+	getXLabel(granularity: Granularity): string {
+		switch (granularity) {
+			case Granularity.DAY:
+				return 'Time'
+			case Granularity.WEEK:
+				return 'Date'
+			case Granularity.MONTH:
+				return 'Week'
 		}
 	}
 }

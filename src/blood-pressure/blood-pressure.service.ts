@@ -5,6 +5,7 @@ import * as dayjs from 'dayjs'
 import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
 import * as weekOfYear from 'dayjs/plugin/weekOfYear'
+import * as duration from 'dayjs/plugin/duration'
 import * as _ from 'lodash'
 import { CreateBloodPressureDto } from './dto/create-blood-pressure.dto'
 import { BloodPressure } from './schema/blood-pressure.schema'
@@ -12,11 +13,12 @@ import { Granularity } from './dto/patient-visualization-request.dto'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 dayjs.extend(weekOfYear)
+dayjs.extend(duration)
 
 const TZ = 'Asia/Bangkok'
 
 export interface BloodPressureVisualizationData {
-	label: string
+	label: string | number
 	values?: number[]
 }
 
@@ -35,6 +37,27 @@ export class BloodPressureService {
 				createdAt: new Date(),
 			},
 		})
+	}
+
+	async getWithinTheDay(
+		patientID: number,
+		startDate: Date,
+		endDate: Date
+	): Promise<BloodPressureVisualizationData[]> {
+		const st = dayjs(startDate).tz(TZ).startOf('day').utc()
+		const et = dayjs(endDate).tz(TZ).endOf('day').utc()
+		const results = await this.bloodPressureModel
+			.aggregate([
+				{ $match: { dateTime: { $gte: st.toDate(), $lte: et.toDate() }, 'metadata.patientID': patientID } },
+				{ $project: { dateTime: 1, systolic: 1, diastolic: 1, pulse: 1 } },
+				{ $sort: { dateTime: 1 } },
+			])
+			.exec()
+		console.log(results)
+		return results.map(result => ({
+			label: dayjs.utc(result.dateTime).diff(st, 'minute'),
+			values: [result.diastolic, result.systolic],
+		}))
 	}
 
 	async getAverageWithCategoricalLabel(
