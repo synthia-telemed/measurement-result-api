@@ -21,7 +21,7 @@ export class GlucoseController {
 
 	@Post()
 	@Roles(UserRole.PATIENT)
-	@ApiOperation({ description: 'Record glucose' })
+	@ApiOperation({ summary: 'Record glucose' })
 	@ApiTags('Patient')
 	@ApiBearerAuth()
 	@ApiCreatedResponse({ type: Glucose })

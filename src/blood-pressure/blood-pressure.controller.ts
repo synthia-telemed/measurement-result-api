@@ -24,7 +24,7 @@ export class BloodPressureController {
 
 	@Post()
 	@Roles(UserRole.PATIENT)
-	@ApiOperation({ description: 'Record blood pressure' })
+	@ApiOperation({ summary: 'Record blood pressure' })
 	@ApiTags('Patient')
 	@ApiBearerAuth()
 	@ApiCreatedResponse({ type: BloodPressure })
