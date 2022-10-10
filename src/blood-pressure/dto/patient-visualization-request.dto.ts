@@ -8,11 +8,14 @@ export enum Granularity {
 }
 
 export class PatientBloodPressureVisualizationRequestDto {
-	@ApiProperty()
+	@ApiProperty({ enum: Granularity })
 	@IsEnum(Granularity)
 	granularity: Granularity
 
-	@ApiProperty()
+	@ApiProperty({
+		description:
+			'if you can data from Sep 02, 2022 to Aug 02, 2022, you should pass 2022-09-02 and set granularity to month',
+	})
 	@IsDateString()
 	date: Date
 }

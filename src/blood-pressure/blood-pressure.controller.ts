@@ -37,9 +37,13 @@ export class BloodPressureController {
 
 	@Get('/visualization/patient')
 	@Roles(UserRole.PATIENT)
+	@ApiOperation({ summary: 'Get paient blood pressure visualization' })
 	@ApiTags('Patient')
 	@ApiBearerAuth()
 	@ApiOkResponse({ type: BloodPressureVisualizationResponseDto })
+	@ApiBadRequestResponse({ description: 'Invalid data' })
+	@ApiUnauthorizedResponse({ description: 'Unauthorized' })
+	@ApiInternalServerErrorResponse({ description: 'Internal server error' })
 	async getBloodPressurePatientVisualization(
 		@User() { id }: UserInfo,
 		@Body() { date, granularity }: PatientBloodPressureVisualizationRequestDto

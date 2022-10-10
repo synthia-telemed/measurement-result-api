@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger'
 import { VisualizationResponseDto } from 'src/dto/visualization-response.dto'
 
 export class BloodPressureVisualizationData {
-	@ApiProperty()
+	@ApiProperty({ oneOf: [{ type: 'string' }, { type: 'number' }] })
 	label: string | number
 
 	@ApiProperty({ isArray: true, type: Number })
