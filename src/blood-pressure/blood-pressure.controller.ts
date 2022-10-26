@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common'
+import { Body, Controller, Get, Post, Query } from '@nestjs/common'
 import {
 	ApiBadRequestResponse,
 	ApiBearerAuth,
@@ -46,7 +46,7 @@ export class BloodPressureController {
 	@ApiInternalServerErrorResponse({ description: 'Internal server error' })
 	async getBloodPressurePatientVisualization(
 		@User() { id }: UserInfo,
-		@Body() { date, granularity }: PatientBloodPressureVisualizationRequestDto
+		@Query() { date, granularity }: PatientBloodPressureVisualizationRequestDto
 	): Promise<BloodPressureVisualizationResponseDto> {
 		let isNumerical = false
 		let data: BloodPressureVisualizationData[]
