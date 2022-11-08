@@ -11,6 +11,7 @@ import {
 } from '@nestjs/swagger'
 import { Roles, UserRole } from 'src/decorator/roles.decorator'
 import { User, UserInfo } from 'src/decorator/user.decorstor'
+import { HospitalService } from 'src/hospital/hospital.service'
 import { BloodPressureService, BloodPressureVisualizationData } from './blood-pressure.service'
 import { CreateBloodPressureDto } from './dto/create-blood-pressure.dto'
 import { Granularity, PatientBloodPressureVisualizationRequestDto } from './dto/patient-visualization-request.dto'
@@ -20,7 +21,10 @@ import { BloodPressure } from './schema/blood-pressure.schema'
 @Controller('blood-pressure')
 @ApiTags('Blood Pressure')
 export class BloodPressureController {
-	constructor(private readonly bloodPressureService: BloodPressureService) {}
+	constructor(
+		private readonly bloodPressureService: BloodPressureService,
+		private readonly hospitalService: HospitalService
+	) {}
 
 	@Post()
 	@Roles(UserRole.PATIENT)
@@ -34,6 +38,10 @@ export class BloodPressureController {
 	async createBloodPressure(@User() { id }: UserInfo, @Body() data: CreateBloodPressureDto): Promise<BloodPressure> {
 		return this.bloodPressureService.create(data, id)
 	}
+
+	@Get('/visualization/doctor/:appointmentID')
+	@Roles(UserRole.DOCTOR)
+	async getDoctorBloodPressurePatientVisualization(@User() { id }: UserInfo) {}
 
 	@Get('/visualization/patient')
 	@Roles(UserRole.PATIENT)
