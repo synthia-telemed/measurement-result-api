@@ -7,6 +7,7 @@ import { AppController } from './app.controller'
 import { BloodPressureModule } from './blood-pressure/blood-pressure.module'
 import { GlucoseModule } from './glucose/glucose.module'
 import { APP_INTERCEPTOR } from '@nestjs/core'
+import { HospitalModule } from './hospital/hospital.module'
 
 @Module({
 	imports: [
@@ -16,6 +17,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core'
 				PORT: Joi.number().default(3000),
 				MONGODB_CONNECTION_STRING: Joi.string().required(),
 				SENTRY_DSN: Joi.string().optional(),
+				HOSPITAL_SYSTEM_ENDPOINT: Joi.string().required(),
 			}),
 		}),
 		MongooseModule.forRootAsync({
@@ -35,6 +37,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core'
 		}),
 		BloodPressureModule,
 		GlucoseModule,
+		HospitalModule,
 	],
 	providers: [
 		{
