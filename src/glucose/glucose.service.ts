@@ -8,7 +8,7 @@ import { Glucose } from './schema/glucose.schema'
 export class GlucoseService {
 	constructor(@InjectModel(Glucose.name) private readonly glucoseModel: Model<Glucose>) {}
 
-	async create({ dateTime, value, isBeforeMeal, period }: CreateGlucoseDto, patientID: number) {
+	async create({ dateTime, value, period }: CreateGlucoseDto, patientID: number) {
 		return this.glucoseModel.create({
 			dateTime,
 			value,
@@ -16,7 +16,6 @@ export class GlucoseService {
 				patientID,
 				createdAt: new Date(),
 				period,
-				isBeforeMeal,
 			},
 		})
 	}

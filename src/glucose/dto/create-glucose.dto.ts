@@ -11,10 +11,6 @@ export class CreateGlucoseDto {
 	@IsNumber()
 	value: number
 
-	@ApiProperty()
-	@IsBoolean()
-	isBeforeMeal: boolean
-
 	@ApiProperty({ enum: Period })
 	@IsEnum(Period)
 	period: Period
