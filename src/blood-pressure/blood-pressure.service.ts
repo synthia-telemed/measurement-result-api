@@ -6,7 +6,6 @@ import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
 import * as weekOfYear from 'dayjs/plugin/weekOfYear'
 import * as duration from 'dayjs/plugin/duration'
-import * as _ from 'lodash'
 import { CreateBloodPressureDto } from './dto/create-blood-pressure.dto'
 import { BloodPressure } from './schema/blood-pressure.schema'
 import {

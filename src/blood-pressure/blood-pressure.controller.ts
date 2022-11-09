@@ -14,13 +14,14 @@ import { User, UserInfo } from 'src/decorator/user.decorstor'
 import { HospitalService } from 'src/hospital/hospital.service'
 import { BloodPressureService } from './blood-pressure.service'
 import { CreateBloodPressureDto } from './dto/create-blood-pressure.dto'
-import { Granularity, PatientBloodPressureVisualizationRequestDto } from './dto/patient-visualization-request.dto'
+import { PatientBloodPressureVisualizationRequestDto } from './dto/patient-visualization-request.dto'
 import {
 	BloodPressureVisualizationData,
 	BloodPressureVisualizationResponseDto,
 } from './dto/patient-visualization-blood-pressure-res.dto'
 import { BloodPressure } from './schema/blood-pressure.schema'
 import { BaseController } from 'src/base/base.controller'
+import { Granularity } from 'src/base/model'
 
 @Controller('blood-pressure')
 @ApiTags('Blood Pressure')

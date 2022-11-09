@@ -4,3 +4,9 @@ export enum Status {
 	WARNING = 'Warning',
 	ABNORMAL = 'Abnormal',
 }
+
+export enum Granularity {
+	DAY = 'day',
+	WEEK = 'week',
+	MONTH = 'month',
+}

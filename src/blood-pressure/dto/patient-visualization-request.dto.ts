@@ -1,11 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsDateString, IsEnum } from 'class-validator'
-
-export enum Granularity {
-	DAY = 'day',
-	WEEK = 'week',
-	MONTH = 'month',
-}
+import { Granularity } from 'src/base/model'
 
 export class PatientBloodPressureVisualizationRequestDto {
 	@ApiProperty({ enum: Granularity })
