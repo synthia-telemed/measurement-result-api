@@ -101,8 +101,9 @@ export class BloodPressureController extends BaseController {
 		let ticks: number[] = []
 		switch (granularity) {
 			case Granularity.WEEK:
-				for (let d = since.clone(); !d.isAfter(to); d = d.add(1, 'day')) {
-					ticks.push(d.startOf('day').utc().unix())
+				ticks = Array.from<number>({ length: 7 }).fill(0)
+				for (let d = since.clone(), i = 0; !d.isAfter(to); d = d.add(1, 'day'), i++) {
+					ticks[i] = d.startOf('day').utc().unix()
 				}
 				break
 
