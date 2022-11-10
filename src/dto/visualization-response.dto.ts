@@ -10,5 +10,8 @@ export class VisualizationResponseDto<T> {
 	@ApiProperty()
 	unit: string
 
+	@ApiProperty({ isArray: true, type: Number })
+	domain: number[]
+
 	data: T[]
 }
