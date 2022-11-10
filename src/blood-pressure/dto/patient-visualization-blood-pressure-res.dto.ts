@@ -1,10 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Status } from 'src/base/model'
+import { Status, VisualizationData } from 'src/base/model'
 import { VisualizationResponseDto } from 'src/dto/visualization-response.dto'
 
-export class BloodPressureVisualizationData {
-	@ApiProperty()
-	label: number
+export class BloodPressureVisualizationData extends VisualizationData {
 	@ApiProperty({ isArray: true, type: Number })
 	values?: number[]
 }
