@@ -66,20 +66,18 @@ export class BloodPressureController extends BaseController {
 		@User() { id }: UserInfo,
 		@Query() { date, granularity }: PatientBloodPressureVisualizationRequestDto
 	): Promise<BloodPressureVisualizationResponseDto> {
-		let data: BloodPressureVisualizationData[]
 		const { sinceDate: sinceDateUTC, toDate: toDateUTC } = this.getSinceAndToUTCDate(granularity, date)
+
+		let dataOp: Promise<BloodPressureVisualizationData[]>
 		if (granularity === Granularity.DAY) {
-			data = await this.bloodPressureService.getDayResults(id, sinceDateUTC, toDateUTC)
-			// const day = dayjs(date).tz(this.TZ)
-			// if (data.length > 0 && dayjs.unix(data[0].label).tz(this.TZ).hour() < 6) {
-			// 	domain = [day.set('hour', 2).utc().unix(), day.set('hour', 22).utc().unix()]
-			// } else {
-			// 	domain = [day.set('hour', 6).utc().unix(), day.set('hour', 21).utc().unix()]
-			// }
+			dataOp = this.bloodPressureService.getDayResults(id, sinceDateUTC, toDateUTC)
 		} else {
-			data = await this.bloodPressureService.getDayAverage(id, sinceDateUTC, toDateUTC)
+			dataOp = this.bloodPressureService.getDayAverage(id, sinceDateUTC, toDateUTC)
 		}
-		const summary = await this.bloodPressureService.getAverage(id, sinceDateUTC, toDateUTC)
+		const [summary, data] = await Promise.all([
+			this.bloodPressureService.getAverage(id, sinceDateUTC, toDateUTC),
+			dataOp,
+		])
 		const { domain, ticks } = this.getDomainAndTicks(granularity, date, data[0])
 		return {
 			xLabel: this.getXLabel(granularity, date),
@@ -97,7 +95,7 @@ export class BloodPressureController extends BaseController {
 		firstData: BloodPressureVisualizationData
 	): { domain: number[]; ticks: number[] } {
 		const { sinceDate: since, toDate: to } = this.getSinceAndToDayjs(granularity, date)
-		const domain = [since.utc().unix(), to.utc().unix()]
+		let domain = [since.utc().unix(), to.utc().unix()]
 		let ticks: number[] = []
 		switch (granularity) {
 			case Granularity.WEEK:
@@ -118,6 +116,19 @@ export class BloodPressureController extends BaseController {
 				ticks[1] = firstTickDate.add(tickInterval, 'day').utc().unix()
 				ticks[2] = lastTickDate.subtract(tickInterval, 'day').utc().unix()
 				break
+
+			case Granularity.DAY:
+				ticks = Array.from<number>({ length: 6 }).fill(0)
+				const firstResultBefore6AM = firstData.label < since.set('hour', 6).utc().unix()
+				const interval = firstResultBefore6AM ? 4 : 3
+				for (
+					let d = since.clone().set('hour', firstResultBefore6AM ? 2 : 6), i = 0;
+					!d.isAfter(to);
+					d = d.add(interval, 'hour'), i++
+				) {
+					ticks[i] = d.utc().unix()
+				}
+				domain = [ticks[0], ticks[5]]
 		}
 		return { domain, ticks }
 	}
