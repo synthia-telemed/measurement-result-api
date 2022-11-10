@@ -71,7 +71,7 @@ export class BloodPressureService {
 		return Status.LOW
 	}
 
-	async getWithinTheDay(patientID: number, sinceDate: Date, toDate: Date): Promise<BloodPressureVisualizationData[]> {
+	async getDayResults(patientID: number, sinceDate: Date, toDate: Date): Promise<BloodPressureVisualizationData[]> {
 		const results = await this.bloodPressureModel
 			.aggregate([
 				{
@@ -85,16 +85,12 @@ export class BloodPressureService {
 			])
 			.exec()
 		return results.map(result => ({
-			label: dayjs.utc(result.dateTime).diff(sinceDate, 'minute'),
+			label: dayjs(result.dateTime).utc().unix(),
 			values: [result.diastolic, result.systolic],
 		}))
 	}
 
-	async getAverageWithCategoricalLabel(
-		patientID: number,
-		sinceDate: Date,
-		toDate: Date
-	): Promise<BloodPressureVisualizationData[]> {
+	async getDayAverage(patientID: number, sinceDate: Date, toDate: Date): Promise<BloodPressureVisualizationData[]> {
 		const results = await this.bloodPressureModel
 			.aggregate([
 				{

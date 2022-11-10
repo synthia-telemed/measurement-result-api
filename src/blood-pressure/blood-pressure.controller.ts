@@ -66,9 +66,9 @@ export class BloodPressureController extends BaseController {
 		let data: BloodPressureVisualizationData[]
 		const { sinceDate, toDate } = this.getSinceAndToUTCDate(granularity, date)
 		if (granularity === Granularity.DAY) {
-			data = await this.bloodPressureService.getWithinTheDay(id, sinceDate, toDate)
+			data = await this.bloodPressureService.getDayResults(id, sinceDate, toDate)
 		} else {
-			data = await this.bloodPressureService.getAverageWithCategoricalLabel(id, sinceDate, toDate)
+			data = await this.bloodPressureService.getDayAverage(id, sinceDate, toDate)
 		}
 		const summary = await this.bloodPressureService.getAverage(id, sinceDate, toDate)
 		return {
