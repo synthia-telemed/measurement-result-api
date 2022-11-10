@@ -78,7 +78,7 @@ export class BloodPressureController extends BaseController {
 			this.bloodPressureService.getAverage(id, sinceDateUTC, toDateUTC),
 			dataOp,
 		])
-		const { domain, ticks } = this.getDomainAndTicks(granularity, date, data[0])
+		const { domain, ticks } = this.getDomainAndTicks(granularity, date, data.length > 0 ? data[0] : null)
 		return {
 			xLabel: this.getXLabel(granularity, date),
 			unit: 'mmHG',

@@ -30,7 +30,7 @@ export class BaseController {
 	getDomainAndTicks(
 		granularity: Granularity,
 		date: Date,
-		firstData: VisualizationData
+		firstData: VisualizationData | null
 	): { domain: number[]; ticks: number[] } {
 		const { sinceDate: since, toDate: to } = this.getSinceAndToDayjs(granularity, date)
 		let domain = [since.utc().unix(), to.utc().unix()]
@@ -57,7 +57,7 @@ export class BaseController {
 
 			case Granularity.DAY:
 				ticks = Array.from<number>({ length: 6 }).fill(0)
-				const firstResultBefore6AM = firstData.label < since.set('hour', 6).utc().unix()
+				const firstResultBefore6AM = firstData ? firstData.label < since.set('hour', 6).utc().unix() : false
 				const interval = firstResultBefore6AM ? 4 : 3
 				for (
 					let d = since.clone().set('hour', firstResultBefore6AM ? 2 : 6), i = 0;

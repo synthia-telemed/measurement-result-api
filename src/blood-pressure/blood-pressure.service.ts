@@ -55,6 +55,7 @@ export class BloodPressureService {
 				},
 			])
 			.exec()
+		if (results.length === 0) return undefined
 		const status = this.getStatusFromBloodPressure(results[0].avgSystolic, results[0].avgDiastolic)
 		const avg: BloodPressureSummary = {
 			systolic: results[0].avgSystolic,
