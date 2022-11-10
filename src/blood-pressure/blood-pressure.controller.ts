@@ -12,19 +12,29 @@ import {
 import { Roles, UserRole } from 'src/decorator/roles.decorator'
 import { User, UserInfo } from 'src/decorator/user.decorstor'
 import { HospitalService } from 'src/hospital/hospital.service'
-import { BloodPressureService, BloodPressureVisualizationData } from './blood-pressure.service'
+import { BloodPressureService } from './blood-pressure.service'
 import { CreateBloodPressureDto } from './dto/create-blood-pressure.dto'
-import { Granularity, PatientBloodPressureVisualizationRequestDto } from './dto/patient-visualization-request.dto'
-import { BloodPressureVisualizationResponseDto } from './dto/patient-visualization-response.dto'
+import { PatientBloodPressureVisualizationRequestDto } from './dto/patient-visualization-request.dto'
+import {
+	BloodPressureVisualizationData,
+	BloodPressureVisualizationResponseDto,
+} from './dto/patient-visualization-blood-pressure-res.dto'
 import { BloodPressure } from './schema/blood-pressure.schema'
+import { BaseController } from 'src/base/base.controller'
+import { Granularity } from 'src/base/model'
+import * as dayjs from 'dayjs'
+import * as timezone from 'dayjs/plugin/timezone'
+dayjs.extend(timezone)
 
 @Controller('blood-pressure')
 @ApiTags('Blood Pressure')
-export class BloodPressureController {
+export class BloodPressureController extends BaseController {
 	constructor(
 		private readonly bloodPressureService: BloodPressureService,
 		private readonly hospitalService: HospitalService
-	) {}
+	) {
+		super()
+	}
 
 	@Post()
 	@Roles(UserRole.PATIENT)
@@ -39,9 +49,9 @@ export class BloodPressureController {
 		return this.bloodPressureService.create(data, id)
 	}
 
-	@Get('/visualization/doctor/:appointmentID')
-	@Roles(UserRole.DOCTOR)
-	async getDoctorBloodPressurePatientVisualization(@User() { id }: UserInfo) {}
+	// @Get('/visualization/doctor/:appointmentID')
+	// @Roles(UserRole.DOCTOR)
+	// async getDoctorBloodPressurePatientVisualization(@User() { id }: UserInfo) {}
 
 	@Get('/visualization/patient')
 	@Roles(UserRole.PATIENT)
@@ -56,30 +66,26 @@ export class BloodPressureController {
 		@User() { id }: UserInfo,
 		@Query() { date, granularity }: PatientBloodPressureVisualizationRequestDto
 	): Promise<BloodPressureVisualizationResponseDto> {
-		let isNumerical = false
-		let data: BloodPressureVisualizationData[]
-		if (granularity === Granularity.DAY) {
-			isNumerical = true
-			data = await this.bloodPressureService.getWithinTheDay(id, date)
-		} else {
-			data = await this.bloodPressureService.getAverageWithCategoricalLabel(id, date, granularity)
-		}
-		return {
-			xLabel: this.getXLabel(granularity),
-			unit: 'mmHG',
-			isNumerical,
-			data,
-		}
-	}
+		const { sinceDate: sinceDateUTC, toDate: toDateUTC } = this.getSinceAndToUTCDate(granularity, date)
 
-	getXLabel(granularity: Granularity): string {
-		switch (granularity) {
-			case Granularity.DAY:
-				return 'Time'
-			case Granularity.WEEK:
-				return 'Date'
-			case Granularity.MONTH:
-				return 'Week'
+		let dataOp: Promise<BloodPressureVisualizationData[]>
+		if (granularity === Granularity.DAY) {
+			dataOp = this.bloodPressureService.getDayResults(id, sinceDateUTC, toDateUTC)
+		} else {
+			dataOp = this.bloodPressureService.getDayAverage(id, sinceDateUTC, toDateUTC)
+		}
+		const [summary, data] = await Promise.all([
+			this.bloodPressureService.getAverage(id, sinceDateUTC, toDateUTC),
+			dataOp,
+		])
+		const { domain, ticks } = this.getDomainAndTicks(granularity, date, data[0])
+		return {
+			xLabel: this.getXLabel(granularity, date),
+			unit: 'mmHG',
+			data,
+			summary,
+			ticks,
+			domain,
 		}
 	}
 }
