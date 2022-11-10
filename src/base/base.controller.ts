@@ -1,6 +1,6 @@
 import * as dayjs from 'dayjs'
 import * as timezone from 'dayjs/plugin/timezone'
-import { Granularity } from 'src/blood-pressure/dto/patient-visualization-request.dto'
+import { Granularity } from './model'
 dayjs.extend(timezone)
 
 export class BaseController {
