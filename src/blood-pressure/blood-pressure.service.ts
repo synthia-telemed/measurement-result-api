@@ -72,7 +72,6 @@ export class BloodPressureService extends BaseService {
 		sinceDate: Date,
 		toDate: Date
 	): Promise<BloodPressureVisualizationData[]> {
-		let timeParser = (dateTime: Date) => dayjs(dateTime).startOf('day').utc().unix()
 		let aggregateSteps: any[] = [
 			{ $addFields: { index: { $dayOfMonth: { date: '$dateTime', timezone: this.TZ } } } },
 			{
@@ -84,10 +83,8 @@ export class BloodPressureService extends BaseService {
 				},
 			},
 		]
-		if (granularity === Granularity.DAY) {
-			timeParser = (dateTime: Date) => dayjs(dateTime).utc().unix()
-			aggregateSteps = [{ $project: { dateTime: 1, systolic: 1, diastolic: 1 } }]
-		}
+		if (granularity === Granularity.DAY) aggregateSteps = [{ $project: { dateTime: 1, systolic: 1, diastolic: 1 } }]
+
 		const results = await this.bloodPressureModel
 			.aggregate([
 				{
@@ -102,7 +99,7 @@ export class BloodPressureService extends BaseService {
 			.exec()
 
 		const visDatas: BloodPressureVisualizationData[] = results.map(result => ({
-			label: timeParser(result.dateTime),
+			label: this.labelTimeParser(granularity, result.dateTime),
 			values: [result.diastolic, result.systolic],
 		}))
 		return visDatas
