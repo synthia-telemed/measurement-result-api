@@ -4,8 +4,6 @@ import { Model } from 'mongoose'
 import * as dayjs from 'dayjs'
 import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
-import * as weekOfYear from 'dayjs/plugin/weekOfYear'
-import * as duration from 'dayjs/plugin/duration'
 import { CreateBloodPressureDto } from './dto/create-blood-pressure.dto'
 import { BloodPressure } from './schema/blood-pressure.schema'
 import {
@@ -13,16 +11,15 @@ import {
 	BloodPressureVisualizationData,
 } from './dto/patient-visualization-blood-pressure-res.dto'
 import { Granularity, Status } from 'src/base/model'
+import { BaseService } from 'src/base/base.service'
 dayjs.extend(utc)
 dayjs.extend(timezone)
-dayjs.extend(weekOfYear)
-dayjs.extend(duration)
-
-const TZ = 'Asia/Bangkok'
 
 @Injectable()
-export class BloodPressureService {
-	constructor(@InjectModel(BloodPressure.name) private readonly bloodPressureModel: Model<BloodPressure>) {}
+export class BloodPressureService extends BaseService {
+	constructor(@InjectModel(BloodPressure.name) private readonly bloodPressureModel: Model<BloodPressure>) {
+		super()
+	}
 
 	async create({ dateTime, diastolic, pulse, systolic }: CreateBloodPressureDto, patientID: number) {
 		return this.bloodPressureModel.create({
@@ -80,7 +77,7 @@ export class BloodPressureService {
 	): Promise<BloodPressureVisualizationData[]> {
 		let timeParser = (dateTime: Date) => dayjs(dateTime).startOf('day').utc().unix()
 		let aggregateSteps: any[] = [
-			{ $addFields: { index: { $dayOfMonth: { date: '$dateTime', timezone: TZ } } } },
+			{ $addFields: { index: { $dayOfMonth: { date: '$dateTime', timezone: this.TZ } } } },
 			{
 				$group: {
 					_id: '$index',
@@ -92,7 +89,7 @@ export class BloodPressureService {
 		]
 		if (granularity === Granularity.DAY) {
 			timeParser = (dateTime: Date) => dayjs(dateTime).utc().unix()
-			aggregateSteps = [{ $project: { dateTime: 1, systolic: 1, diastolic: 1, pulse: 1 } }]
+			aggregateSteps = [{ $project: { dateTime: 1, systolic: 1, diastolic: 1 } }]
 		}
 		const results = await this.bloodPressureModel
 			.aggregate([
