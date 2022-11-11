@@ -4,25 +4,19 @@ import { Model } from 'mongoose'
 import * as dayjs from 'dayjs'
 import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
-import * as weekOfYear from 'dayjs/plugin/weekOfYear'
-import * as duration from 'dayjs/plugin/duration'
 import { CreateBloodPressureDto } from './dto/create-blood-pressure.dto'
 import { BloodPressure } from './schema/blood-pressure.schema'
-import {
-	BloodPressureSummary,
-	BloodPressureVisualizationData,
-} from './dto/patient-visualization-blood-pressure-res.dto'
-import { Status } from 'src/base/model'
+import { BloodPressureSummary, BloodPressureVisualizationData } from './dto/patient-visualization-blood-pressure.dto'
+import { Granularity, Status } from 'src/base/model'
+import { BaseService } from 'src/base/base.service'
 dayjs.extend(utc)
 dayjs.extend(timezone)
-dayjs.extend(weekOfYear)
-dayjs.extend(duration)
-
-const TZ = 'Asia/Bangkok'
 
 @Injectable()
-export class BloodPressureService {
-	constructor(@InjectModel(BloodPressure.name) private readonly bloodPressureModel: Model<BloodPressure>) {}
+export class BloodPressureService extends BaseService {
+	constructor(@InjectModel(BloodPressure.name) private readonly bloodPressureModel: Model<BloodPressure>) {
+		super()
+	}
 
 	async create({ dateTime, diastolic, pulse, systolic }: CreateBloodPressureDto, patientID: number) {
 		return this.bloodPressureModel.create({
@@ -72,7 +66,28 @@ export class BloodPressureService {
 		return Status.LOW
 	}
 
-	async getDayResults(patientID: number, sinceDate: Date, toDate: Date): Promise<BloodPressureVisualizationData[]> {
+	async getVisualizationData(
+		patientID: number,
+		granularity: Granularity,
+		sinceDate: Date,
+		toDate: Date
+	): Promise<BloodPressureVisualizationData[]> {
+		let timeParser = (dateTime: Date) => dayjs(dateTime).startOf('day').utc().unix()
+		let aggregateSteps: any[] = [
+			{ $addFields: { index: { $dayOfMonth: { date: '$dateTime', timezone: this.TZ } } } },
+			{
+				$group: {
+					_id: '$index',
+					systolic: { $avg: '$systolic' },
+					diastolic: { $avg: '$diastolic' },
+					dateTime: { $first: '$dateTime' },
+				},
+			},
+		]
+		if (granularity === Granularity.DAY) {
+			timeParser = (dateTime: Date) => dayjs(dateTime).utc().unix()
+			aggregateSteps = [{ $project: { dateTime: 1, systolic: 1, diastolic: 1 } }]
+		}
 		const results = await this.bloodPressureModel
 			.aggregate([
 				{
@@ -81,40 +96,13 @@ export class BloodPressureService {
 						'metadata.patientID': patientID,
 					},
 				},
-				{ $project: { dateTime: 1, systolic: 1, diastolic: 1, pulse: 1 } },
-				{ $sort: { dateTime: 1 } },
-			])
-			.exec()
-		return results.map(result => ({
-			label: dayjs(result.dateTime).utc().unix(),
-			values: [result.diastolic, result.systolic],
-		}))
-	}
-
-	async getDayAverage(patientID: number, sinceDate: Date, toDate: Date): Promise<BloodPressureVisualizationData[]> {
-		const results = await this.bloodPressureModel
-			.aggregate([
-				{
-					$match: {
-						dateTime: { $gte: sinceDate, $lte: toDate },
-						'metadata.patientID': patientID,
-					},
-				},
-				{ $addFields: { index: { $dayOfMonth: { date: '$dateTime', timezone: TZ } } } },
-				{
-					$group: {
-						_id: '$index',
-						systolic: { $avg: '$systolic' },
-						diastolic: { $avg: '$diastolic' },
-						dateTime: { $first: '$dateTime' },
-					},
-				},
+				...aggregateSteps,
 				{ $sort: { dateTime: 1 } },
 			])
 			.exec()
 
 		const visDatas: BloodPressureVisualizationData[] = results.map(result => ({
-			label: dayjs(result.dateTime).startOf('day').utc().unix(),
+			label: timeParser(result.dateTime),
 			values: [result.diastolic, result.systolic],
 		}))
 		return visDatas

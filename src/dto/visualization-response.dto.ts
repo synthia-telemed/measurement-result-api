@@ -15,3 +15,8 @@ export class VisualizationResponseDto<T> {
 
 	data: T[]
 }
+
+export class VisualizationData {
+	@ApiProperty()
+	label: number
+}
