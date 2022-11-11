@@ -14,8 +14,8 @@ import { User, UserInfo } from 'src/decorator/user.decorstor'
 import { HospitalService } from 'src/hospital/hospital.service'
 import { BloodPressureService } from './blood-pressure.service'
 import { CreateBloodPressureDto } from './dto/create-blood-pressure.dto'
-import { PatientBloodPressureVisualizationRequestDto } from './dto/patient-visualization-request.dto'
-import { BloodPressureVisualizationResponseDto } from './dto/patient-visualization-blood-pressure-res.dto'
+import { PatientVisualizationRequestDto } from '../dto/patient-visualization-request.dto'
+import { BloodPressureVisualizationResponseDto } from './dto/patient-visualization-blood-pressure.dto'
 import { BloodPressure } from './schema/blood-pressure.schema'
 import { BaseController } from 'src/base/base.controller'
 import * as dayjs from 'dayjs'
@@ -60,7 +60,7 @@ export class BloodPressureController extends BaseController {
 	@ApiInternalServerErrorResponse({ description: 'Internal server error' })
 	async getBloodPressurePatientVisualization(
 		@User() { id }: UserInfo,
-		@Query() { date, granularity }: PatientBloodPressureVisualizationRequestDto
+		@Query() { date, granularity }: PatientVisualizationRequestDto
 	): Promise<BloodPressureVisualizationResponseDto> {
 		const { sinceDate: sinceDateUTC, toDate: toDateUTC } = this.getSinceAndToUTCDate(granularity, date)
 

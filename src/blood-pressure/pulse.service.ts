@@ -6,7 +6,6 @@ import * as timezone from 'dayjs/plugin/timezone'
 import { Model } from 'mongoose'
 import { BaseService } from 'src/base/base.service'
 import { Granularity, Status } from 'src/base/model'
-import { BloodPressureVisualizationData } from './dto/patient-visualization-blood-pressure-res.dto'
 import { PulseSummary, PulseVisualizationData } from './dto/patient-visualization-pulse.dto'
 import { BloodPressure } from './schema/blood-pressure.schema'
 dayjs.extend(utc)

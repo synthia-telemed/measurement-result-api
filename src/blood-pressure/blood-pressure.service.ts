@@ -6,10 +6,7 @@ import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
 import { CreateBloodPressureDto } from './dto/create-blood-pressure.dto'
 import { BloodPressure } from './schema/blood-pressure.schema'
-import {
-	BloodPressureSummary,
-	BloodPressureVisualizationData,
-} from './dto/patient-visualization-blood-pressure-res.dto'
+import { BloodPressureSummary, BloodPressureVisualizationData } from './dto/patient-visualization-blood-pressure.dto'
 import { Granularity, Status } from 'src/base/model'
 import { BaseService } from 'src/base/base.service'
 dayjs.extend(utc)
