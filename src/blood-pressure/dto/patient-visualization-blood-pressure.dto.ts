@@ -16,7 +16,7 @@ export class BloodPressureSummary {
 	status: Status
 }
 
-export class BloodPressureVisualizationResponseDto extends VisualizationResponseDto<BloodPressureVisualizationData> {
+export class BloodPressureVisualizationResponseDto extends VisualizationResponseDto<BloodPressureVisualizationData[]> {
 	@ApiProperty({ isArray: true, type: BloodPressureVisualizationData })
 	data: BloodPressureVisualizationData[]
 

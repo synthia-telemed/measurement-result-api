@@ -6,7 +6,18 @@ export class GlucoseVisualizationData extends VisualizationData {
 	value: number
 }
 
-export class GlucoseVisualizationResponseDto extends VisualizationResponseDto<GlucoseVisualizationData> {
-	@ApiProperty({ isArray: true, type: GlucoseVisualizationData })
-	data: GlucoseVisualizationData[]
+export class GlucoseVisualizationDatas {
+	@ApiProperty()
+	fasting: GlucoseVisualizationData[]
+
+	@ApiProperty()
+	beforeMeal: GlucoseVisualizationData[]
+
+	@ApiProperty()
+	afterMeal: GlucoseVisualizationData[]
+}
+
+export class GlucoseVisualizationResponseDto extends VisualizationResponseDto<GlucoseVisualizationDatas> {
+	@ApiProperty()
+	data: GlucoseVisualizationDatas
 }
