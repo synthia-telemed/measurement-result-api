@@ -15,13 +15,9 @@ import { HospitalService } from 'src/hospital/hospital.service'
 import { BloodPressureService } from './blood-pressure.service'
 import { CreateBloodPressureDto } from './dto/create-blood-pressure.dto'
 import { PatientBloodPressureVisualizationRequestDto } from './dto/patient-visualization-request.dto'
-import {
-	BloodPressureVisualizationData,
-	BloodPressureVisualizationResponseDto,
-} from './dto/patient-visualization-blood-pressure-res.dto'
+import { BloodPressureVisualizationResponseDto } from './dto/patient-visualization-blood-pressure-res.dto'
 import { BloodPressure } from './schema/blood-pressure.schema'
 import { BaseController } from 'src/base/base.controller'
-import { Granularity } from 'src/base/model'
 import * as dayjs from 'dayjs'
 import * as timezone from 'dayjs/plugin/timezone'
 dayjs.extend(timezone)
@@ -68,15 +64,9 @@ export class BloodPressureController extends BaseController {
 	): Promise<BloodPressureVisualizationResponseDto> {
 		const { sinceDate: sinceDateUTC, toDate: toDateUTC } = this.getSinceAndToUTCDate(granularity, date)
 
-		let dataOp: Promise<BloodPressureVisualizationData[]>
-		if (granularity === Granularity.DAY) {
-			dataOp = this.bloodPressureService.getDayResults(id, sinceDateUTC, toDateUTC)
-		} else {
-			dataOp = this.bloodPressureService.getDayAverage(id, sinceDateUTC, toDateUTC)
-		}
 		const [summary, data] = await Promise.all([
 			this.bloodPressureService.getAverage(id, sinceDateUTC, toDateUTC),
-			dataOp,
+			this.bloodPressureService.getVisualizationData(id, granularity, sinceDateUTC, toDateUTC),
 		])
 		const { domain, ticks } = this.getDomainAndTicks(granularity, date, data.length > 0 ? data[0] : null)
 		return {
