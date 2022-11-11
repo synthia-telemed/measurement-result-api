@@ -1,6 +1,7 @@
 import * as dayjs from 'dayjs'
 import * as timezone from 'dayjs/plugin/timezone'
-import { Granularity, VisualizationData } from './model'
+import { VisualizationData } from 'src/dto/visualization-response.dto'
+import { Granularity } from './model'
 dayjs.extend(timezone)
 
 export class BaseController {
