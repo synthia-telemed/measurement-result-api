@@ -7,7 +7,7 @@ import * as timezone from 'dayjs/plugin/timezone'
 import { CreateGlucoseDto } from './dto/create-glucose.dto'
 import { Glucose, Period } from './schema/glucose.schema'
 import { Granularity } from 'src/base/model'
-import { GlucoseVisualizationData } from './dto/visualization-glucose.dto'
+import { GlucoseVisualizationData, GlucoseVisualizationDatas } from './dto/visualization-glucose.dto'
 import { BaseService } from 'src/base/base.service'
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -30,7 +30,25 @@ export class GlucoseService extends BaseService {
 		})
 	}
 
-	async getVisualizationData(
+	async getVisualizationDatas(
+		patientID: number,
+		granularity: Granularity,
+		sinceDate: Date,
+		toDate: Date
+	): Promise<GlucoseVisualizationDatas> {
+		const periods: Period[] = [Period.Fasting, Period.BeforeMeal, Period.AfterMeal]
+		const ops = periods.map(period =>
+			this.getVisualizationDataByPeriod(patientID, granularity, sinceDate, toDate, period)
+		)
+		const [fasting, beforeMeal, afterMeal] = await Promise.all(ops)
+		return {
+			fasting,
+			beforeMeal,
+			afterMeal,
+		}
+	}
+
+	async getVisualizationDataByPeriod(
 		patientID: number,
 		granularity: Granularity,
 		sinceDate: Date,
