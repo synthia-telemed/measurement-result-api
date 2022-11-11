@@ -17,7 +17,7 @@ export class PulseService extends BaseService {
 		super()
 	}
 
-	async getAverage(patientID: number, sinceDate: Date, toDate: Date): Promise<PulseSummary> {
+	async getSummary(patientID: number, sinceDate: Date, toDate: Date): Promise<PulseSummary> {
 		const results = await this.bloodPressureModel
 			.aggregate([
 				{
@@ -42,8 +42,8 @@ export class PulseService extends BaseService {
 	}
 
 	private getStatus(avgPulse: number): Status {
-		if (avgPulse < 60) return Status.LOW
-		if (avgPulse > 100) return Status.NORMAL
+		if (avgPulse > 170) return Status.WARNING
+		if (avgPulse < 100) return Status.LOW
 		return Status.NORMAL
 	}
 

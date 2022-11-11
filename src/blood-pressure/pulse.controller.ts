@@ -38,7 +38,7 @@ export class PulseController extends BaseController {
 		const { sinceDate: sinceDateUTC, toDate: toDateUTC } = this.getSinceAndToUTCDate(granularity, date)
 
 		const [summary, data] = await Promise.all([
-			this.pulseService.getAverage(id, sinceDateUTC, toDateUTC),
+			this.pulseService.getSummary(id, sinceDateUTC, toDateUTC),
 			this.pulseService.getVisualizationData(id, granularity, sinceDateUTC, toDateUTC),
 		])
 		const { domain, ticks } = this.getDomainAndTicks(granularity, date, data.length > 0 ? data[0] : null)
