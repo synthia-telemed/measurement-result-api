@@ -69,7 +69,7 @@ export class GlucoseController extends BaseController {
 			ticks,
 			domain,
 			summary: {
-				value: lastestValue.value,
+				value: lastestValue ? lastestValue.value : undefined,
 				status: this.glucoseService.getStatusFromAverage(avgResults),
 			},
 		}
