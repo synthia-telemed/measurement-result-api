@@ -6,11 +6,16 @@ import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
 import { CreateGlucoseDto } from './dto/create-glucose.dto'
 import { Glucose, Period } from './schema/glucose.schema'
-import { Granularity } from 'src/base/model'
+import { Granularity, Status } from 'src/base/model'
 import { GlucoseVisualizationData, GlucoseVisualizationDatas } from './dto/visualization-glucose.dto'
 import { BaseService } from 'src/base/base.service'
 dayjs.extend(utc)
 dayjs.extend(timezone)
+
+interface GlucoseAverageResult {
+	_id: Period
+	value: number
+}
 
 @Injectable()
 export class GlucoseService extends BaseService {
@@ -28,6 +33,44 @@ export class GlucoseService extends BaseService {
 				period,
 			},
 		})
+	}
+
+	async getLastestResult(patientID: number, sinceDate: Date, toDate: Date): Promise<Glucose | null> {
+		return this.glucoseModel
+			.findOne({ 'metadata.patientID': patientID, dateTime: { $gte: sinceDate, $lte: toDate } })
+			.sort({ dateTime: -1 })
+	}
+
+	async getAverage(patientID: number, sinceDate: Date, toDate: Date): Promise<GlucoseAverageResult[]> {
+		const results = await this.glucoseModel
+			.aggregate([
+				{
+					$match: {
+						dateTime: { $gte: sinceDate, $lte: toDate },
+						'metadata.patientID': patientID,
+					},
+				},
+				{ $group: { _id: '$metadata.period', value: { $avg: '$value' } } },
+			])
+			.exec()
+		return results
+	}
+
+	getStatusFromAverage(results: GlucoseAverageResult[]): Status {
+		for (const { _id: period, value } of results) {
+			switch (period) {
+				case Period.Fasting:
+					if (value >= 126) return Status.ABNORMAL
+					if (value >= 100) return Status.WARNING
+					if (value < 70) return Status.LOW
+					break
+				case Period.BeforeMeal:
+					break
+				case Period.AfterMeal:
+					break
+			}
+		}
+		return Status.NORMAL
 	}
 
 	async getVisualizationDatas(

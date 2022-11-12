@@ -10,6 +10,7 @@ import {
 	ApiUnauthorizedResponse,
 } from '@nestjs/swagger'
 import { BaseController } from 'src/base/base.controller'
+import { Granularity } from 'src/base/model'
 import { Roles, UserRole } from 'src/decorator/roles.decorator'
 import { User, UserInfo } from 'src/decorator/user.decorstor'
 import { PatientVisualizationRequestDto } from 'src/dto/patient-visualization-request.dto'
@@ -53,7 +54,13 @@ export class GlucoseController extends BaseController {
 	): Promise<GlucoseVisualizationResponseDto> {
 		const { sinceDate: sinceDateUTC, toDate: toDateUTC } = this.getSinceAndToUTCDate(granularity, date)
 
-		const data = await this.glucoseService.getVisualizationDatas(id, granularity, sinceDateUTC, toDateUTC)
+		const [data, avgResults] = await Promise.all([
+			this.glucoseService.getVisualizationDatas(id, granularity, sinceDateUTC, toDateUTC),
+			this.glucoseService.getAverage(id, sinceDateUTC, toDateUTC),
+		])
+		let lastestValue: Glucose | null
+		if (granularity === Granularity.DAY)
+			lastestValue = await this.glucoseService.getLastestResult(id, sinceDateUTC, toDateUTC)
 		const { domain, ticks } = this.getDomainAndTicks(granularity, date, null)
 		return {
 			xLabel: this.getXLabel(granularity, date),
@@ -61,6 +68,10 @@ export class GlucoseController extends BaseController {
 			data,
 			ticks,
 			domain,
+			summary: {
+				value: lastestValue.value,
+				status: this.glucoseService.getStatusFromAverage(avgResults),
+			},
 		}
 	}
 }
