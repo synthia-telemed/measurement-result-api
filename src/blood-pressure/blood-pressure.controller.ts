@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common'
 import {
 	ApiBadRequestResponse,
 	ApiBearerAuth,
@@ -11,7 +11,6 @@ import {
 } from '@nestjs/swagger'
 import { Roles, UserRole } from 'src/decorator/roles.decorator'
 import { User, UserInfo } from 'src/decorator/user.decorstor'
-import { HospitalService } from 'src/hospital/hospital.service'
 import { BloodPressureService } from './blood-pressure.service'
 import { CreateBloodPressureDto } from './dto/create-blood-pressure.dto'
 import { PatientVisualizationRequestDto } from '../dto/patient-visualization-request.dto'
