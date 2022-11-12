@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
+import { Status } from 'src/base/model'
 
 export class PatientLatestResult {
 	@ApiProperty()
@@ -6,4 +7,7 @@ export class PatientLatestResult {
 
 	@ApiProperty()
 	unit: string
+
+	@ApiProperty({ enum: Status })
+	status: Status
 }

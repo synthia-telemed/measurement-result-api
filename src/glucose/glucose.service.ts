@@ -9,6 +9,7 @@ import { Glucose, Period } from './schema/glucose.schema'
 import { Granularity, Status } from 'src/base/model'
 import { GlucoseVisualizationData, GlucoseVisualizationDatas } from './dto/visualization-glucose.dto'
 import { BaseService } from 'src/base/base.service'
+import { PatientLatestGlucose, PatientLatestGlucoseAllPeriod } from './dto/patient-latest-glucose.dto'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
@@ -19,6 +20,7 @@ interface GlucoseAverageResult {
 
 @Injectable()
 export class GlucoseService extends BaseService {
+	readonly unit = 'mg/dL'
 	constructor(@InjectModel(Glucose.name) private readonly glucoseModel: Model<Glucose>) {
 		super()
 	}
@@ -33,6 +35,46 @@ export class GlucoseService extends BaseService {
 				period,
 			},
 		})
+	}
+
+	async getTodayLatestResultAllPeriod(patientID: number): Promise<PatientLatestGlucoseAllPeriod> {
+		const { sinceDate, toDate } = this.getTodayDateRange()
+		const results = await this.glucoseModel.aggregate([
+			{
+				$match: { dateTime: { $gte: sinceDate, $lte: toDate }, 'metadata.patientID': patientID },
+			},
+			{
+				$project: { 'metadata.period': true, dateTime: true, value: true },
+			},
+			{
+				$sort: { dateTime: -1 },
+			},
+			{
+				$group: { _id: '$metadata.period', dateTime: { $first: '$dateTime' }, value: { $first: '$value' } },
+			},
+		])
+		const allPeriod: PatientLatestGlucoseAllPeriod = {}
+		for (const { _id: period, dateTime, value } of results) {
+			const data: PatientLatestGlucose = {
+				dateTime,
+				value,
+				unit: this.unit,
+				status: this.getStatus(period, value),
+			}
+			allPeriod[this.parsePeriodToResponse(period)] = data
+		}
+		return allPeriod
+	}
+
+	parsePeriodToResponse(period: Period): string {
+		switch (period) {
+			case Period.AfterMeal:
+				return 'afterMeal'
+			case Period.BeforeMeal:
+				return 'beforeMeal'
+			default:
+				return 'fasting'
+		}
 	}
 
 	async getLastestResult(patientID: number, sinceDate: Date, toDate: Date): Promise<Glucose | null> {
