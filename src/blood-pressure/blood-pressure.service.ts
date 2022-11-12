@@ -15,7 +15,7 @@ dayjs.extend(timezone)
 
 @Injectable()
 export class BloodPressureService extends BaseService {
-	private readonly unit = 'mmHg'
+	readonly unit = 'mmHg'
 	constructor(@InjectModel(BloodPressure.name) private readonly bloodPressureModel: Model<BloodPressure>) {
 		super()
 	}
