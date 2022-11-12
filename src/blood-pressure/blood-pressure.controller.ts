@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common'
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common'
 import {
 	ApiBadRequestResponse,
 	ApiBearerAuth,
@@ -20,15 +20,13 @@ import { BloodPressure } from './schema/blood-pressure.schema'
 import { BaseController } from 'src/base/base.controller'
 import * as dayjs from 'dayjs'
 import * as timezone from 'dayjs/plugin/timezone'
+import { DoctorAppointmentGuard } from 'src/guard/appointment.guard'
 dayjs.extend(timezone)
 
 @Controller('blood-pressure')
 @ApiTags('Blood Pressure')
 export class BloodPressureController extends BaseController {
-	constructor(
-		private readonly bloodPressureService: BloodPressureService,
-		private readonly hospitalService: HospitalService
-	) {
+	constructor(private readonly bloodPressureService: BloodPressureService) {
 		super()
 	}
 
@@ -45,9 +43,13 @@ export class BloodPressureController extends BaseController {
 		return this.bloodPressureService.create(data, id)
 	}
 
-	// @Get('/visualization/doctor/:appointmentID')
-	// @Roles(UserRole.DOCTOR)
-	// async getDoctorBloodPressurePatientVisualization(@User() { id }: UserInfo) {}
+	@Get('/visualization/doctor/:appointmentID')
+	@Roles(UserRole.DOCTOR)
+	@UseGuards(DoctorAppointmentGuard)
+	async getDoctorBloodPressurePatientVisualization(@User() { id }: UserInfo): Promise<any> {
+		// await this.bloodPressureService.getPatientIDFromAppointment(id, appointmentID)
+		return { success: true }
+	}
 
 	@Get('/visualization/patient')
 	@Roles(UserRole.PATIENT)
