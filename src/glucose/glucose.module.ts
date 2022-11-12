@@ -8,5 +8,6 @@ import { Glucose, GlucoseSchema } from './schema/glucose.schema'
 	imports: [MongooseModule.forFeature([{ name: Glucose.name, schema: GlucoseSchema }])],
 	controllers: [GlucoseController],
 	providers: [GlucoseService],
+	exports: [GlucoseService],
 })
 export class GlucoseModule {}

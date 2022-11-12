@@ -9,11 +9,13 @@ import { BloodPressure } from './schema/blood-pressure.schema'
 import { BloodPressureSummary, BloodPressureVisualizationData } from './dto/patient-visualization-blood-pressure.dto'
 import { Granularity, Status } from 'src/base/model'
 import { BaseService } from 'src/base/base.service'
+import { PatientLatestBloodPressure } from './dto/patient-latest-blood-pressure.dto'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
 @Injectable()
 export class BloodPressureService extends BaseService {
+	readonly unit = 'mmHg'
 	constructor(@InjectModel(BloodPressure.name) private readonly bloodPressureModel: Model<BloodPressure>) {
 		super()
 	}
@@ -29,6 +31,27 @@ export class BloodPressureService extends BaseService {
 				createdAt: new Date(),
 			},
 		})
+	}
+
+	async getTodayLatestResult(patientID: number): Promise<PatientLatestBloodPressure> {
+		const { sinceDate, toDate } = this.getTodayDateRange()
+		const result = await this.bloodPressureModel
+			.findOne({
+				'metadata.patientID': patientID,
+				dateTime: { $gte: sinceDate, $lte: toDate },
+			})
+			.sort({ dateTime: -1 })
+			.lean()
+			.exec()
+		if (!result) return undefined
+		const status = this.getStatusFromBloodPressure(result.systolic, result.diastolic)
+		return {
+			dateTime: result.dateTime,
+			systolic: result.systolic,
+			diastolic: result.diastolic,
+			status,
+			unit: this.unit,
+		}
 	}
 
 	async getAverage(patientID: number, sinceDate: Date, toDate: Date): Promise<BloodPressureSummary> {

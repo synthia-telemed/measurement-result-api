@@ -73,7 +73,7 @@ export class GlucoseController extends BaseController {
 		const { domain, ticks } = this.getDomainAndTicks(granularity, date, null)
 		return {
 			xLabel: this.getXLabel(granularity, date),
-			unit: 'mg/dL',
+			unit: this.glucoseService.unit,
 			data,
 			ticks,
 			domain,
