@@ -8,13 +8,13 @@ export class GlucoseVisualizationData extends VisualizationData {
 }
 
 export class GlucoseVisualizationDatas {
-	@ApiProperty()
+	@ApiProperty({ isArray: true, type: GlucoseVisualizationData })
 	fasting: GlucoseVisualizationData[]
 
-	@ApiProperty()
+	@ApiProperty({ isArray: true, type: GlucoseVisualizationData })
 	beforeMeal: GlucoseVisualizationData[]
 
-	@ApiProperty()
+	@ApiProperty({ isArray: true, type: GlucoseVisualizationData })
 	afterMeal: GlucoseVisualizationData[]
 }
 
@@ -30,6 +30,6 @@ export class GlucoseVisualizationResponseDto extends VisualizationResponseDto<Gl
 	@ApiProperty()
 	data: GlucoseVisualizationDatas
 
-	@ApiProperty()
+	@ApiProperty({ nullable: true })
 	summary?: GlucoseSummary
 }
