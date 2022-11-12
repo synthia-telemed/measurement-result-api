@@ -44,7 +44,7 @@ export class PulseController extends BaseController {
 		const { domain, ticks } = this.getDomainAndTicks(granularity, date, data.length > 0 ? data[0] : null)
 		return {
 			xLabel: this.getXLabel(granularity, date),
-			unit: 'mg/dl',
+			unit: this.pulseService.unit,
 			data,
 			summary,
 			ticks,
