@@ -12,4 +12,10 @@ export class BaseService {
 		}
 		return dayjs(dateTime).startOf('day').utc().unix()
 	}
+
+	protected getTodayDateRange(): { sinceDate: Date; toDate: Date } {
+		const sinceDate = dayjs().tz(this.TZ).startOf('day')
+		const toDate = sinceDate.endOf('day')
+		return { sinceDate: sinceDate.utc().toDate(), toDate: toDate.utc().toDate() }
+	}
 }

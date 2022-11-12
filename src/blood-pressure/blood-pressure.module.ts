@@ -11,5 +11,6 @@ import { PulseService } from './pulse.service'
 	imports: [MongooseModule.forFeature([{ name: BloodPressure.name, schema: BloodPressureSchema }]), HospitalModule],
 	controllers: [BloodPressureController, PulseController],
 	providers: [BloodPressureService, PulseService],
+	exports: [BloodPressureService, PulseService],
 })
 export class BloodPressureModule {}
