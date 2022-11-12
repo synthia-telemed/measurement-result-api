@@ -14,7 +14,7 @@ export class PulseVisualizationData extends VisualizationData {
 	values?: number
 }
 
-export class PulseVisualizationResponseDto extends VisualizationResponseDto<PulseVisualizationData> {
+export class PulseVisualizationResponseDto extends VisualizationResponseDto<PulseVisualizationData[]> {
 	@ApiProperty({ isArray: true, type: PulseVisualizationData })
 	data: PulseVisualizationData[]
 

@@ -13,7 +13,7 @@ export class VisualizationResponseDto<T> {
 	@ApiProperty({ isArray: true, type: Number })
 	domain: number[]
 
-	data: T[]
+	data: T
 }
 
 export class VisualizationData {

@@ -53,7 +53,6 @@ export class PulseService extends BaseService {
 		sinceDate: Date,
 		toDate: Date
 	): Promise<PulseVisualizationData[]> {
-		let timeParser = (dateTime: Date) => dayjs(dateTime).startOf('day').utc().unix()
 		let aggregateSteps: any[] = [
 			{ $addFields: { index: { $dayOfMonth: { date: '$dateTime', timezone: this.TZ } } } },
 			{
@@ -64,10 +63,8 @@ export class PulseService extends BaseService {
 				},
 			},
 		]
-		if (granularity === Granularity.DAY) {
-			timeParser = (dateTime: Date) => dayjs(dateTime).utc().unix()
-			aggregateSteps = [{ $project: { dateTime: 1, pulse: 1 } }]
-		}
+		if (granularity === Granularity.DAY) aggregateSteps = [{ $project: { dateTime: 1, pulse: 1 } }]
+
 		const results = await this.bloodPressureModel
 			.aggregate([
 				{
@@ -82,7 +79,7 @@ export class PulseService extends BaseService {
 			.exec()
 
 		return results.map(result => ({
-			label: timeParser(result.dateTime),
+			label: this.labelTimeParser(granularity, result.dateTime),
 			values: result.pulse,
 		}))
 	}
