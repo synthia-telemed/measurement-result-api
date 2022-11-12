@@ -16,9 +16,13 @@ export class HomeController {
 	@Get('latest')
 	@Roles(UserRole.PATIENT)
 	async getLatestResults(@User() { id }: UserInfo) {
-		const [bloodPressure] = await Promise.all([this.bloodPressureService.getTodayLatestResult(id)])
+		const [bloodPressure, pulse] = await Promise.all([
+			this.bloodPressureService.getTodayLatestResult(id),
+			this.pulseService.getTodayLatestResult(id),
+		])
 		return {
 			bloodPressure,
+			pulse,
 		}
 	}
 }
