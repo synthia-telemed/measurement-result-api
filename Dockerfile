@@ -5,6 +5,7 @@ COPY package.json ./
 COPY pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY ./ ./
+RUN pnpm prisma-gen
 RUN pnpm build
 ENV NODE_ENV=production
 RUN pnpm prune --prod

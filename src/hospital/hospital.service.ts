@@ -23,7 +23,7 @@ export class HospitalService {
 			}
 		`
 		const vars = {
-			where: { id: { equals: appointmentID } },
+			where: { id: { equals: parseInt(appointmentID) } },
 		}
 		return await this.client.request(query, vars)
 	}
