@@ -31,5 +31,5 @@ export class GlucoseVisualizationResponseDto extends VisualizationResponseDto<Gl
 	data: GlucoseVisualizationDatas
 
 	@ApiProperty()
-	summary: GlucoseSummary
+	summary?: GlucoseSummary
 }

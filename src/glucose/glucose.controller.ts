@@ -15,7 +15,7 @@ import { Roles, UserRole } from 'src/decorator/roles.decorator'
 import { User, UserInfo } from 'src/decorator/user.decorstor'
 import { PatientVisualizationRequestDto } from 'src/dto/patient-visualization-request.dto'
 import { CreateGlucoseDto } from './dto/create-glucose.dto'
-import { GlucoseVisualizationResponseDto } from './dto/visualization-glucose.dto'
+import { GlucoseSummary, GlucoseVisualizationResponseDto } from './dto/visualization-glucose.dto'
 import { GlucoseService } from './glucose.service'
 import { Glucose } from './schema/glucose.schema'
 
@@ -58,9 +58,18 @@ export class GlucoseController extends BaseController {
 			this.glucoseService.getVisualizationDatas(id, granularity, sinceDateUTC, toDateUTC),
 			this.glucoseService.getAverage(id, sinceDateUTC, toDateUTC),
 		])
-		let lastestValue: Glucose | null
-		if (granularity === Granularity.DAY)
-			lastestValue = await this.glucoseService.getLastestResult(id, sinceDateUTC, toDateUTC)
+		let summary: GlucoseSummary
+		if (granularity === Granularity.DAY) {
+			const lastestResult = await this.glucoseService.getLastestResult(id, sinceDateUTC, toDateUTC)
+			if (lastestResult) {
+				summary = {
+					value: lastestResult.value,
+					status: this.glucoseService.getStatus(lastestResult.metadata.period, lastestResult.value),
+				}
+			}
+		} else {
+			summary = avgResults.length > 0 ? { status: this.glucoseService.getStatusFromAverage(avgResults) } : null
+		}
 		const { domain, ticks } = this.getDomainAndTicks(granularity, date, null)
 		return {
 			xLabel: this.getXLabel(granularity, date),
@@ -68,10 +77,7 @@ export class GlucoseController extends BaseController {
 			data,
 			ticks,
 			domain,
-			summary: {
-				value: lastestValue ? lastestValue.value : undefined,
-				status: this.glucoseService.getStatusFromAverage(avgResults),
-			},
+			summary,
 		}
 	}
 }

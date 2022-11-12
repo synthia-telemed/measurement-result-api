@@ -57,18 +57,27 @@ export class GlucoseService extends BaseService {
 	}
 
 	getStatusFromAverage(results: GlucoseAverageResult[]): Status {
+		let status = Status.NORMAL
 		for (const { _id: period, value } of results) {
-			switch (period) {
-				case Period.Fasting:
-					if (value >= 126) return Status.ABNORMAL
-					if (value >= 100) return Status.WARNING
-					if (value < 70) return Status.LOW
-					break
-				case Period.BeforeMeal:
-					break
-				case Period.AfterMeal:
-					break
-			}
+			const periodStatus = this.getStatus(period, value)
+			if (periodStatus === Status.ABNORMAL) return Status.ABNORMAL
+			else if (periodStatus === Status.WARNING) status = Status.WARNING
+			else if (periodStatus === Status.LOW) status = Status.LOW
+		}
+		return status
+	}
+
+	getStatus(period: Period, value: number): Status {
+		switch (period) {
+			case Period.Fasting:
+				if (value >= 126) return Status.ABNORMAL
+				if (value >= 100) return Status.WARNING
+				if (value < 70) return Status.LOW
+				break
+			case Period.BeforeMeal:
+				break
+			case Period.AfterMeal:
+				break
 		}
 		return Status.NORMAL
 	}
@@ -100,9 +109,9 @@ export class GlucoseService extends BaseService {
 	): Promise<GlucoseVisualizationData[]> {
 		let aggregateSteps: any[] = [
 			{ $addFields: { index: { $dayOfMonth: { date: '$dateTime', timezone: this.TZ } } } },
-			{ $group: { _id: '$index', value: { $avg: '$value' } } },
+			{ $group: { _id: '$index', value: { $avg: '$value' }, dateTime: { $first: '$dateTime' } } },
 		]
-		if (granularity === Granularity.DAY) aggregateSteps = [{ $project: { value: 1 } }]
+		if (granularity === Granularity.DAY) aggregateSteps = [{ $project: { value: 1, dateTime: 1 } }]
 
 		const results = await this.glucoseModel
 			.aggregate([
