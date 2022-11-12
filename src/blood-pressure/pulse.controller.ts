@@ -24,7 +24,7 @@ export class PulseController extends BaseController {
 
 	@Get('/visualization/patient')
 	@Roles(UserRole.PATIENT)
-	@ApiOperation({ summary: 'Get paient blood pressure visualization' })
+	@ApiOperation({ summary: 'Get paient pulse visualization' })
 	@ApiTags('Patient')
 	@ApiBearerAuth()
 	@ApiOkResponse({ type: PulseVisualizationResponseDto })
