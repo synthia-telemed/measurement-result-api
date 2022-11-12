@@ -8,7 +8,7 @@ import { BloodPressureModule } from './blood-pressure/blood-pressure.module'
 import { GlucoseModule } from './glucose/glucose.module'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 import { HospitalModule } from './hospital/hospital.module'
-import { HomeModule } from './home/home.module';
+import { HomeModule } from './home/home.module'
 
 @Module({
 	imports: [
