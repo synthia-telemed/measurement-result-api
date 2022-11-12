@@ -10,7 +10,7 @@ export class BaseService {
 		if (granularity === Granularity.DAY) {
 			return dayjs(dateTime).utc().unix()
 		}
-		return dayjs(dateTime).startOf('day').utc().unix()
+		return dayjs(dateTime).tz(this.TZ).startOf('day').utc().unix()
 	}
 
 	protected getTodayDateRange(): { sinceDate: Date; toDate: Date } {
