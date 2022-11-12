@@ -4,6 +4,7 @@ import { NestFactory, Reflector } from '@nestjs/core'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import { AppModule } from './app.module'
 import { RolesGuard } from './guard/roles.guard'
+import { PrismaService } from './prisma.service'
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule)
@@ -11,6 +12,8 @@ async function bootstrap() {
 	app.setGlobalPrefix('/api')
 	app.useGlobalPipes(new ValidationPipe())
 	app.useGlobalGuards(new RolesGuard(new Reflector()))
+	const prismaService = app.get(PrismaService)
+	await prismaService.enableShutdownHooks(app)
 
 	const config = new DocumentBuilder()
 		.setTitle('Synthia Measurement Result API')
