@@ -22,9 +22,19 @@ export class HospitalService {
 				}
 			}
 		`
-		const vars = {
-			where: { id: { equals: parseInt(appointmentID) } },
-		}
+		const vars = { where: { id: { equals: parseInt(appointmentID) } } }
+		return await this.client.request(query, vars)
+	}
+
+	async getPatientBirthDate(patientID: string) {
+		const query = gql`
+			query Patient($where: PatientWhereInput!) {
+				patient(where: $where) {
+					birthDate
+				}
+			}
+		`
+		const vars = { where: { id: { equals: patientID } } }
 		return await this.client.request(query, vars)
 	}
 }
