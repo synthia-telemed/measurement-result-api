@@ -40,6 +40,9 @@ export class HospitalService {
 	}
 
 	async getPatientBirthDate(patientID: string) {
+		const cacheKey = `measurement-server:patient:${patientID}`
+		const cachedBirthDate = await this.redis.get(cacheKey)
+		if (cachedBirthDate) return JSON.parse(cachedBirthDate)
 		const query = gql`
 			query Patient($where: PatientWhereInput!) {
 				patient(where: $where) {
@@ -48,6 +51,8 @@ export class HospitalService {
 			}
 		`
 		const vars = { where: { id: { equals: patientID } } }
-		return await this.client.request(query, vars)
+		const { patient } = await this.client.request(query, vars)
+		await this.redis.set(cacheKey, JSON.stringify(patient), 'EX', 60 * 60 * 24)
+		return patient
 	}
 }
