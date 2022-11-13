@@ -85,8 +85,20 @@ export class BloodPressureService extends BaseService {
 	getStatusFromBloodPressure(systolic: number, diastolic: number): Status {
 		if (systolic > 140 || diastolic > 90) return Status.ABNORMAL
 		if (systolic > 120 || diastolic > 80) return Status.WARNING
-		if (systolic > 90 || diastolic > 60) return Status.NORMAL
-		return Status.LOW
+		if (systolic < 90 || diastolic < 60) return Status.ABNORMAL
+		return Status.NORMAL
+	}
+
+	private getColorFromBloodPressure(systolic: number, diastolic: number): string {
+		const status = this.getStatusFromBloodPressure(systolic, diastolic)
+		switch (status) {
+			case Status.ABNORMAL:
+				return '#131957'
+			case Status.WARNING:
+				return '#2632AE'
+			default:
+				return '#5965E1'
+		}
 	}
 
 	async getVisualizationData(
@@ -121,9 +133,10 @@ export class BloodPressureService extends BaseService {
 			])
 			.exec()
 
-		const visDatas: BloodPressureVisualizationData[] = results.map(result => ({
-			label: this.labelTimeParser(granularity, result.dateTime),
-			values: [result.diastolic, result.systolic],
+		const visDatas: BloodPressureVisualizationData[] = results.map(({ dateTime, systolic, diastolic }) => ({
+			label: this.labelTimeParser(granularity, dateTime),
+			values: [diastolic, systolic],
+			color: this.getColorFromBloodPressure(systolic, diastolic),
 		}))
 		return visDatas
 	}
