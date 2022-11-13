@@ -63,9 +63,23 @@ export class PulseService extends BaseService {
 	}
 
 	private getStatus(avgPulse: number): Status {
-		if (avgPulse > 170) return Status.WARNING
-		if (avgPulse < 100) return Status.LOW
+		// TODO: implement queyr age and conditionally return status
+		if (avgPulse > 170) return Status.ABNORMAL
+		if (avgPulse < 100) return Status.WARNING
 		return Status.NORMAL
+	}
+
+	private getColorFromPulse(pulse: number): string {
+		// TODO: discuss the color range
+		const status = this.getStatus(pulse)
+		switch (status) {
+			case Status.ABNORMAL:
+				return '#131957'
+			case Status.WARNING:
+				return '#2632AE'
+			default:
+				return '#4F84F6'
+		}
 	}
 
 	async getVisualizationData(
@@ -99,9 +113,10 @@ export class PulseService extends BaseService {
 			])
 			.exec()
 
-		return results.map(result => ({
-			label: this.labelTimeParser(granularity, result.dateTime),
-			values: result.pulse,
+		return results.map(({ dateTime, pulse }) => ({
+			label: this.labelTimeParser(granularity, dateTime),
+			values: pulse,
+			color: this.getColorFromPulse(pulse),
 		}))
 	}
 }

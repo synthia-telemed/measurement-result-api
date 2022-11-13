@@ -19,4 +19,7 @@ export class VisualizationResponseDto<T> {
 export class VisualizationData {
 	@ApiProperty()
 	label: number
+
+	@ApiProperty({ nullable: true })
+	color?: string
 }

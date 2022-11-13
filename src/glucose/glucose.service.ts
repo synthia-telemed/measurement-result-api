@@ -104,7 +104,6 @@ export class GlucoseService extends BaseService {
 			const periodStatus = this.getStatus(period, value)
 			if (periodStatus === Status.ABNORMAL) return Status.ABNORMAL
 			else if (periodStatus === Status.WARNING) status = Status.WARNING
-			else if (periodStatus === Status.LOW) status = Status.LOW
 		}
 		return status
 	}
@@ -112,16 +111,30 @@ export class GlucoseService extends BaseService {
 	getStatus(period: Period, value: number): Status {
 		switch (period) {
 			case Period.Fasting:
-				if (value >= 126) return Status.ABNORMAL
+				if (value >= 126 || value < 69) return Status.ABNORMAL
 				if (value >= 100) return Status.WARNING
-				if (value < 70) return Status.LOW
 				break
 			case Period.BeforeMeal:
+				if (value >= 240 || value < 70) return Status.ABNORMAL
 				break
 			case Period.AfterMeal:
+				if (value >= 240 || value < 70) return Status.ABNORMAL
 				break
 		}
 		return Status.NORMAL
+	}
+
+	private getColorFromPeriodAndValue(period: Period, value: number): string {
+		const status = this.getStatus(period, value)
+		// TODO: Discuss the color
+		switch (status) {
+			case Status.ABNORMAL:
+				return '#131957'
+			case Status.WARNING:
+				return '#2632AE'
+			default:
+				return '#4F84F6'
+		}
 	}
 
 	async getVisualizationDatas(
@@ -171,6 +184,7 @@ export class GlucoseService extends BaseService {
 		return results.map(result => ({
 			label: this.labelTimeParser(granularity, result.dateTime),
 			value: result.value,
+			color: granularity === Granularity.DAY ? this.getColorFromPeriodAndValue(period, result.value) : undefined,
 		}))
 	}
 }
