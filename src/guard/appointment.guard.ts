@@ -16,11 +16,10 @@ export class DoctorAppointmentGuard implements CanActivate {
 		const req = ctx.switchToHttp().getRequest()
 		const doctorID = req.headers['x-user-id']
 		const { appointmentID } = req.params
-		const [doctorRefID, result] = await Promise.all([
+		const [doctorRefID, appointment] = await Promise.all([
 			this.getDoctorRefID(parseInt(doctorID)),
 			this.hospitalService.getAppointment(appointmentID),
 		])
-		const appointment = result?.appointment
 		if (!appointment || !doctorRefID) throw new NotFoundException()
 
 		return (

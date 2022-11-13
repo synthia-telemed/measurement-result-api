@@ -37,6 +37,7 @@
     "dayjs": "^1.11.5",
     "graphql": "^16.6.0",
     "graphql-request": "^5.0.0",
+    "ioredis": "^5.2.4",
     "joi": "^17.6.2",
     "lodash": "^4.17.21",
     "mongoose": "^6.6.4",
