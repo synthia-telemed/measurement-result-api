@@ -1,8 +1,10 @@
+import { Injectable } from '@nestjs/common'
 import * as dayjs from 'dayjs'
 import * as utc from 'dayjs/plugin/utc'
 import { Granularity } from './model'
 dayjs.extend(utc)
 
+@Injectable()
 export class BaseService {
 	TZ = 'Asia/Bangkok'
 

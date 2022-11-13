@@ -19,6 +19,11 @@ import { HomeModule } from './home/home.module'
 				MONGODB_CONNECTION_STRING: Joi.string().required(),
 				SENTRY_DSN: Joi.string().optional(),
 				HOSPITAL_SYSTEM_ENDPOINT: Joi.string().required(),
+				DATABASE_URL: Joi.string().required(),
+				REDIS_HOST: Joi.string().required(),
+				REDIS_PORT: Joi.number().required(),
+				REDIS_USERNAME: Joi.string().optional(),
+				REDIS_PASSWORD: Joi.string().optional(),
 			}),
 		}),
 		MongooseModule.forRootAsync({
