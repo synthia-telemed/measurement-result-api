@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger'
+import { ApiExtraModels, ApiProperty, getSchemaPath } from '@nestjs/swagger'
 import { Status } from 'src/base/model'
 import { VisualizationData, VisualizationResponseDto } from 'src/dto/visualization-response.dto'
 
@@ -26,9 +26,26 @@ export class GlucoseSummary {
 	status: Status
 }
 
-export class GlucoseVisualizationResponseDto extends VisualizationResponseDto<GlucoseVisualizationDatas> {
+export class GlucoseVisualizationDataWithPeriod extends VisualizationData {
 	@ApiProperty()
-	data: GlucoseVisualizationDatas
+	value: number
+
+	@ApiProperty()
+	period: string
+}
+
+@ApiExtraModels(GlucoseVisualizationDataWithPeriod, GlucoseVisualizationDatas)
+export class GlucoseVisualizationResponseDto extends VisualizationResponseDto<
+	GlucoseVisualizationDatas | GlucoseVisualizationDataWithPeriod[]
+> {
+	@ApiProperty({
+		type: 'object',
+		oneOf: [
+			{ $ref: getSchemaPath(GlucoseVisualizationDatas) },
+			{ $ref: getSchemaPath(GlucoseVisualizationDataWithPeriod), type: 'array' },
+		],
+	})
+	data: GlucoseVisualizationDatas | GlucoseVisualizationDataWithPeriod[]
 
 	@ApiProperty({ nullable: true })
 	summary?: GlucoseSummary

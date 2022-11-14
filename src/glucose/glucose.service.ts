@@ -7,7 +7,11 @@ import * as timezone from 'dayjs/plugin/timezone'
 import { CreateGlucoseDto } from './dto/create-glucose.dto'
 import { Glucose, Period } from './schema/glucose.schema'
 import { Granularity, Status } from 'src/base/model'
-import { GlucoseVisualizationData, GlucoseVisualizationDatas } from './dto/visualization-glucose.dto'
+import {
+	GlucoseVisualizationData,
+	GlucoseVisualizationDatas,
+	GlucoseVisualizationDataWithPeriod,
+} from './dto/visualization-glucose.dto'
 import { BaseService } from 'src/base/base.service'
 import { PatientLatestGlucose, PatientLatestGlucoseAllPeriod } from './dto/patient-latest-glucose.dto'
 dayjs.extend(utc)
@@ -137,9 +141,37 @@ export class GlucoseService extends BaseService {
 		}
 	}
 
+	async getDayVisualizationData(
+		patientID: number,
+		sinceDate: Date,
+		toDate: Date
+	): Promise<GlucoseVisualizationDataWithPeriod[]> {
+		const results = await this.glucoseModel
+			.find({ 'metadata.patientID': patientID, dateTime: { $gte: sinceDate, $lte: toDate } })
+			.sort({ dateTime: -1 })
+			.lean()
+			.exec()
+		return results.map(result => ({
+			label: this.labelTimeParser(Granularity.DAY, result.dateTime),
+			value: result.value,
+			period: this.parsePeriodToDisplayable(result.metadata.period),
+		}))
+	}
+
+	parsePeriodToDisplayable(period: Period): string {
+		switch (period) {
+			case Period.AfterMeal:
+				return 'After Meal'
+			case Period.BeforeMeal:
+				return 'Before Meal'
+			default:
+				return 'Fasting'
+		}
+	}
+
 	async getVisualizationDatas(
 		patientID: number,
-		granularity: Granularity,
+		granularity: Granularity.MONTH | Granularity.WEEK,
 		sinceDate: Date,
 		toDate: Date
 	): Promise<GlucoseVisualizationDatas> {
@@ -157,17 +189,11 @@ export class GlucoseService extends BaseService {
 
 	async getVisualizationDataByPeriod(
 		patientID: number,
-		granularity: Granularity,
+		granularity: Granularity.MONTH | Granularity.WEEK,
 		sinceDate: Date,
 		toDate: Date,
 		period: Period
 	): Promise<GlucoseVisualizationData[]> {
-		let aggregateSteps: any[] = [
-			{ $addFields: { index: { $dayOfMonth: { date: '$dateTime', timezone: this.TZ } } } },
-			{ $group: { _id: '$index', value: { $avg: '$value' }, dateTime: { $first: '$dateTime' } } },
-		]
-		if (granularity === Granularity.DAY) aggregateSteps = [{ $project: { value: 1, dateTime: 1 } }]
-
 		const results = await this.glucoseModel
 			.aggregate([
 				{
@@ -177,14 +203,14 @@ export class GlucoseService extends BaseService {
 						'metadata.period': period,
 					},
 				},
-				...aggregateSteps,
+				{ $addFields: { index: { $dayOfMonth: { date: '$dateTime', timezone: this.TZ } } } },
+				{ $group: { _id: '$index', value: { $avg: '$value' }, dateTime: { $first: '$dateTime' } } },
 				{ $sort: { dateTime: 1 } },
 			])
 			.exec()
 		return results.map(result => ({
 			label: this.labelTimeParser(granularity, result.dateTime),
 			value: result.value,
-			color: granularity === Granularity.DAY ? this.getColorFromPeriodAndValue(period, result.value) : undefined,
 		}))
 	}
 }
