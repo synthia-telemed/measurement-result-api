@@ -15,7 +15,12 @@ import { Roles, UserRole } from 'src/decorator/roles.decorator'
 import { User, UserInfo } from 'src/decorator/user.decorstor'
 import { PatientVisualizationRequestDto } from 'src/dto/patient-visualization-request.dto'
 import { CreateGlucoseDto } from './dto/create-glucose.dto'
-import { GlucoseSummary, GlucoseVisualizationResponseDto } from './dto/visualization-glucose.dto'
+import {
+	GlucoseSummary,
+	GlucoseVisualizationDatas,
+	GlucoseVisualizationDataWithPeriod,
+	GlucoseVisualizationResponseDto,
+} from './dto/visualization-glucose.dto'
 import { GlucoseService } from './glucose.service'
 import { Glucose } from './schema/glucose.schema'
 
@@ -54,13 +59,14 @@ export class GlucoseController extends BaseController {
 	): Promise<GlucoseVisualizationResponseDto> {
 		const { sinceDate: sinceDateUTC, toDate: toDateUTC } = this.getSinceAndToUTCDate(granularity, date)
 
-		const [data, avgResults] = await Promise.all([
-			this.glucoseService.getVisualizationDatas(id, granularity, sinceDateUTC, toDateUTC),
-			this.glucoseService.getAverage(id, sinceDateUTC, toDateUTC),
-		])
+		let data: GlucoseVisualizationDatas | GlucoseVisualizationDataWithPeriod[]
 		let summary: GlucoseSummary
 		if (granularity === Granularity.DAY) {
-			const lastestResult = await this.glucoseService.getLastestResult(id, sinceDateUTC, toDateUTC)
+			const [visData, lastestResult] = await Promise.all([
+				this.glucoseService.getDayVisualizationData(id, sinceDateUTC, toDateUTC),
+				this.glucoseService.getLastestResult(id, sinceDateUTC, toDateUTC),
+			])
+			data = visData
 			if (lastestResult) {
 				summary = {
 					value: lastestResult.value,
@@ -68,6 +74,11 @@ export class GlucoseController extends BaseController {
 				}
 			}
 		} else {
+			const [visData, avgResults] = await Promise.all([
+				this.glucoseService.getVisualizationDatas(id, granularity, sinceDateUTC, toDateUTC),
+				this.glucoseService.getAverage(id, sinceDateUTC, toDateUTC),
+			])
+			data = visData
 			summary = avgResults.length > 0 ? { status: this.glucoseService.getStatusFromAverage(avgResults) } : null
 		}
 		const { domain, ticks } = this.getDomainAndTicks(granularity, date, null)
