@@ -9,11 +9,3 @@ export enum PatientGranularity {
 	WEEK = 'week',
 	MONTH = 'month',
 }
-
-export enum DoctorGranularity {
-	WEEK = 'week',
-	MONTH = 'month',
-	THREE_MONTHS = '3 months',
-}
-
-export type Granularity = PatientGranularity | DoctorGranularity
