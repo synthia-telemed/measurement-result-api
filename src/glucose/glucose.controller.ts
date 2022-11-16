@@ -9,10 +9,8 @@ import {
 	ApiTags,
 	ApiUnauthorizedResponse,
 } from '@nestjs/swagger'
-import dayjs from 'dayjs'
-import * as utc from 'dayjs/plugin/utc'
 import { BaseController } from 'src/base/base.controller'
-import { DoctorGranularity, PatientGranularity } from 'src/base/model'
+import { PatientGranularity } from 'src/base/model'
 import { Roles, UserRole } from 'src/decorator/roles.decorator'
 import { User, UserInfo } from 'src/decorator/user.decorstor'
 import { DoctorVisualizationRequestDto } from 'src/dto/doctor-visualization-request.dto'
@@ -79,7 +77,7 @@ export class GlucoseController extends BaseController {
 			}
 		} else {
 			const [visData, avgResults] = await Promise.all([
-				this.glucoseService.getAggregatedVisualizationDatas(id, granularity, sinceDateUTC, toDateUTC),
+				this.glucoseService.getAggregatedVisualizationDatas(id, sinceDateUTC, toDateUTC),
 				this.glucoseService.getAverage(id, sinceDateUTC, toDateUTC),
 			])
 			data = visData
@@ -103,20 +101,17 @@ export class GlucoseController extends BaseController {
 	@ApiTags('Doctor')
 	@ApiBearerAuth()
 	async getDoctorGlucoseVisualization(
-		@User() { id }: UserInfo,
 		@Request() { patientID },
 		@Query() { from: fromDate, to: toDate }: DoctorVisualizationRequestDto
 	) {
 		const from = this.parUTCDateToDayjs(fromDate).startOf('day')
 		const to = this.parUTCDateToDayjs(toDate).endOf('day')
-		const granularity = this.getDoctorGranularityFromDates(from, to)
 		const data = await this.glucoseService.getAggregatedVisualizationDatas(
 			patientID,
-			granularity,
 			from.utc().toDate(),
 			to.utc().toDate()
 		)
-		const { domain, ticks } = this.getDoctorDomainAndTicks(from, to, granularity)
-		return { data, granularity, domain, ticks }
+		const { domain, ticks } = this.getDoctorDomainAndTicks(from, to)
+		return { data, domain, ticks }
 	}
 }

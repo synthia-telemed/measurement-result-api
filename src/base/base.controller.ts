@@ -83,21 +83,10 @@ export class BaseController {
 		return { domain, ticks }
 	}
 
-	getDoctorDomainAndTicks(
-		from: dayjs.Dayjs,
-		to: dayjs.Dayjs,
-		granularity: DoctorGranularity
-	): { domain: number[]; ticks: number[] } {
+	getDoctorDomainAndTicks(from: dayjs.Dayjs, to: dayjs.Dayjs): { domain: number[]; ticks: number[] } {
 		const domain = [from.tz(this.TZ).startOf('day').utc().unix(), to.tz(this.TZ).startOf('day').utc().unix()]
-		let ticks: number[] = []
-		switch (granularity) {
-			case DoctorGranularity.THREE_MONTHS:
-				break
-			default:
-				const dayDiff = to.diff(from, 'day')
-				ticks = Array.from<number>({ length: dayDiff + 1 }).map((_, i) => from.add(i, 'day').utc().unix())
-				break
-		}
+		const dayDiff = to.diff(from, 'day')
+		const ticks = Array.from<number>({ length: dayDiff + 1 }).map((_, i) => from.add(i, 'day').utc().unix())
 		return { domain, ticks }
 	}
 }

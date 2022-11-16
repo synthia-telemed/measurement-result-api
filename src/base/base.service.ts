@@ -9,12 +9,17 @@ export class BaseService {
 	TZ = 'Asia/Bangkok'
 
 	labelTimeParser(granularity: Granularity, dateTime: Date): number {
+		const date = dayjs(dateTime).tz(this.TZ)
 		switch (granularity) {
 			case PatientGranularity.DAY:
-				return dayjs(dateTime).utc().unix()
+				return date.utc().unix()
 			default:
-				return dayjs(dateTime).tz(this.TZ).startOf('day').utc().unix()
+				return date.startOf('day').utc().unix()
 		}
+	}
+
+	aggregatedLabelTimeParser(dateTime: Date): number {
+		return dayjs(dateTime).tz(this.TZ).startOf('day').utc().unix()
 	}
 
 	protected getTodayDateRange(): { sinceDate: Date; toDate: Date } {

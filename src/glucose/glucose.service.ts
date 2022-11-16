@@ -177,13 +177,12 @@ export class GlucoseService extends BaseService {
 
 	async getAggregatedVisualizationDatas(
 		patientID: number,
-		granularity: AggregatableGranularity,
 		sinceDate: Date,
 		toDate: Date
 	): Promise<GlucoseVisualizationDatas> {
 		const periods: Period[] = [Period.Fasting, Period.BeforeMeal, Period.AfterMeal]
 		const ops = periods.map(period =>
-			this.getAggregatedVisualizationDataByPeriod(patientID, granularity, sinceDate, toDate, period)
+			this.getAggregatedVisualizationDataByPeriod(patientID, sinceDate, toDate, period)
 		)
 		const [fasting, beforeMeal, afterMeal] = await Promise.all(ops)
 		return {
@@ -195,15 +194,10 @@ export class GlucoseService extends BaseService {
 
 	async getAggregatedVisualizationDataByPeriod(
 		patientID: number,
-		granularity: AggregatableGranularity,
 		sinceDate: Date,
 		toDate: Date,
 		period: Period
 	): Promise<GlucoseVisualizationData[]> {
-		let createIndexStage: any = { $addFields: { index: { $dayOfYear: { date: '$dateTime', timezone: this.TZ } } } }
-		if (granularity === DoctorGranularity.THREE_MONTHS) {
-			createIndexStage = { $addFields: { index: { $week: { date: '$dateTime', timezone: this.TZ } } } }
-		}
 		const results = await this.glucoseModel
 			.aggregate([
 				{
@@ -213,13 +207,14 @@ export class GlucoseService extends BaseService {
 						'metadata.period': period,
 					},
 				},
-				createIndexStage,
+				{ $addFields: { index: { $dayOfYear: { date: '$dateTime', timezone: this.TZ } } } },
 				{ $group: { _id: '$index', value: { $avg: '$value' }, dateTime: { $first: '$dateTime' } } },
 				{ $sort: { dateTime: 1 } },
 			])
 			.exec()
+		console.log(results)
 		return results.map(result => ({
-			label: this.labelTimeParser(granularity, result.dateTime),
+			label: this.aggregatedLabelTimeParser(result.dateTime),
 			value: result.value,
 		}))
 	}
