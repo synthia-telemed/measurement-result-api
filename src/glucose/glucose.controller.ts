@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common'
+import { Body, Controller, Get, Post, Query, UseGuards, Request } from '@nestjs/common'
 import {
 	ApiBadRequestResponse,
 	ApiBearerAuth,
@@ -14,6 +14,7 @@ import { PatientGranularity } from 'src/base/model'
 import { Roles, UserRole } from 'src/decorator/roles.decorator'
 import { User, UserInfo } from 'src/decorator/user.decorstor'
 import { PatientVisualizationRequestDto } from 'src/dto/patient-visualization-request.dto'
+import { DoctorAppointmentGuard } from 'src/guard/appointment.guard'
 import { CreateGlucoseDto } from './dto/create-glucose.dto'
 import {
 	GlucoseSummary,
@@ -90,5 +91,15 @@ export class GlucoseController extends BaseController {
 			domain,
 			summary,
 		}
+	}
+
+	@Get('/visualization/doctor/:appointmentID')
+	@Roles(UserRole.DOCTOR)
+	@UseGuards(DoctorAppointmentGuard)
+	@ApiOperation({ summary: 'Get doctor glucose visualization' })
+	@ApiTags('Doctor')
+	@ApiBearerAuth()
+	async getDoctorGlucoseVisualization(@User() { id }: UserInfo, @Request() { patientID }) {
+		return { success: true }
 	}
 }

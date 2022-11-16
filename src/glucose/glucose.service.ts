@@ -6,7 +6,7 @@ import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
 import { CreateGlucoseDto } from './dto/create-glucose.dto'
 import { Glucose, Period } from './schema/glucose.schema'
-import { PatientGranularity, Status } from 'src/base/model'
+import { DoctorGranularity, PatientGranularity, Status } from 'src/base/model'
 import {
 	GlucoseVisualizationData,
 	GlucoseVisualizationDatas,
@@ -189,11 +189,15 @@ export class GlucoseService extends BaseService {
 
 	async getVisualizationDataByPeriod(
 		patientID: number,
-		granularity: PatientGranularity.MONTH | PatientGranularity.WEEK,
+		granularity: PatientGranularity.MONTH | PatientGranularity.WEEK | DoctorGranularity.THREE_MONTHS,
 		sinceDate: Date,
 		toDate: Date,
 		period: Period
 	): Promise<GlucoseVisualizationData[]> {
+		let createIndexStage: any = { $addFields: { index: { $dayOfYear: { date: '$dateTime', timezone: this.TZ } } } }
+		if (granularity === DoctorGranularity.THREE_MONTHS) {
+			createIndexStage = { $addFields: { index: { $week: { date: '$dateTime', timezone: this.TZ } } } }
+		}
 		const results = await this.glucoseModel
 			.aggregate([
 				{
@@ -203,7 +207,7 @@ export class GlucoseService extends BaseService {
 						'metadata.period': period,
 					},
 				},
-				{ $addFields: { index: { $dayOfMonth: { date: '$dateTime', timezone: this.TZ } } } },
+				createIndexStage,
 				{ $group: { _id: '$index', value: { $avg: '$value' }, dateTime: { $first: '$dateTime' } } },
 				{ $sort: { dateTime: 1 } },
 			])
