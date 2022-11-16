@@ -3,12 +3,16 @@ import {
 	ApiBadRequestResponse,
 	ApiBearerAuth,
 	ApiCreatedResponse,
+	ApiForbiddenResponse,
 	ApiInternalServerErrorResponse,
 	ApiOkResponse,
 	ApiOperation,
+	ApiParam,
 	ApiTags,
 	ApiUnauthorizedResponse,
 } from '@nestjs/swagger'
+import * as dayjs from 'dayjs'
+import * as utc from 'dayjs/plugin/utc'
 import { BaseController } from 'src/base/base.controller'
 import { PatientGranularity } from 'src/base/model'
 import { Roles, UserRole } from 'src/decorator/roles.decorator'
@@ -17,6 +21,7 @@ import { DoctorVisualizationRequestDto } from 'src/dto/doctor-visualization-requ
 import { PatientVisualizationRequestDto } from 'src/dto/patient-visualization-request.dto'
 import { DoctorAppointmentGuard } from 'src/guard/appointment.guard'
 import { CreateGlucoseDto } from './dto/create-glucose.dto'
+import { DoctorGlucoseVisualizationResponseDto } from './dto/doctor-visualization.dto'
 import {
 	GlucoseSummary,
 	GlucoseVisualizationDatas,
@@ -25,6 +30,7 @@ import {
 } from './dto/visualization-glucose.dto'
 import { GlucoseService } from './glucose.service'
 import { Glucose } from './schema/glucose.schema'
+dayjs.extend(utc)
 
 @Controller('glucose')
 @ApiTags('Glucose')
@@ -100,10 +106,16 @@ export class GlucoseController extends BaseController {
 	@ApiOperation({ summary: 'Get doctor glucose visualization' })
 	@ApiTags('Doctor')
 	@ApiBearerAuth()
+	@ApiParam({ name: 'appointmentID', type: 'string' })
+	@ApiOkResponse({ type: DoctorGlucoseVisualizationResponseDto })
+	@ApiBadRequestResponse({ description: 'Invalid data' })
+	@ApiForbiddenResponse({ description: 'Forbidden' })
+	@ApiUnauthorizedResponse({ description: 'Unauthorized' })
+	@ApiInternalServerErrorResponse({ description: 'Internal server error' })
 	async getDoctorGlucoseVisualization(
 		@Request() { patientID },
 		@Query() { from: fromDate, to: toDate }: DoctorVisualizationRequestDto
-	) {
+	): Promise<DoctorGlucoseVisualizationResponseDto> {
 		const from = this.parUTCDateToDayjs(fromDate).startOf('day')
 		const to = this.parUTCDateToDayjs(toDate).endOf('day')
 		const data = await this.glucoseService.getAggregatedVisualizationDatas(
@@ -112,6 +124,13 @@ export class GlucoseController extends BaseController {
 			to.utc().toDate()
 		)
 		const { domain, ticks } = this.getDoctorDomainAndTicks(from, to)
-		return { data, domain, ticks }
+		return {
+			data,
+			domain,
+			ticks,
+			unit: this.glucoseService.unit,
+			xLabel: this.getDoctorXLabel(from, to),
+			summary: null,
+		}
 	}
 }

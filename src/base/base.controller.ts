@@ -30,6 +30,11 @@ export class BaseController {
 		}
 	}
 
+	getDoctorXLabel(from: dayjs.Dayjs, to: dayjs.Dayjs): string {
+		const dateFormat = 'D MMM YYYY'
+		return `${from.format(dateFormat)} - ${to.format(dateFormat)}`
+	}
+
 	getSinceAndToDayjs(granularity: PatientGranularity, date: Date): { sinceDate: dayjs.Dayjs; toDate: dayjs.Dayjs } {
 		const sinceDate = dayjs(date).tz(this.TZ).subtract(1, granularity).add(1, 'day').startOf('day')
 		const toDate = dayjs(date).tz(this.TZ).endOf('date')

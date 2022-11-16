@@ -22,12 +22,6 @@ interface GlucoseAverageResult {
 	value: number
 }
 
-type AggregatableGranularity =
-	| PatientGranularity.MONTH
-	| PatientGranularity.WEEK
-	| DoctorGranularity.THREE_MONTHS
-	| DoctorGranularity.MONTH
-	| DoctorGranularity.WEEK
 @Injectable()
 export class GlucoseService extends BaseService {
 	readonly unit = 'mg/dL'
@@ -212,7 +206,6 @@ export class GlucoseService extends BaseService {
 				{ $sort: { dateTime: 1 } },
 			])
 			.exec()
-		console.log(results)
 		return results.map(result => ({
 			label: this.aggregatedLabelTimeParser(result.dateTime),
 			value: result.value,
