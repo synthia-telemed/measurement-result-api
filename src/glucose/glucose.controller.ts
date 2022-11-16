@@ -116,6 +116,7 @@ export class GlucoseController extends BaseController {
 			from.utc().toDate(),
 			to.utc().toDate()
 		)
-		return { data, granularity }
+		const { domain, ticks } = this.getDoctorDomainAndTicks(from, to, granularity)
+		return { data, granularity, domain, ticks }
 	}
 }
