@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsDateString, IsEnum } from 'class-validator'
-import { Granularity } from 'src/base/model'
+import { PatientGranularity } from 'src/base/model'
 
 export class PatientVisualizationRequestDto {
-	@ApiProperty({ enum: Granularity })
-	@IsEnum(Granularity)
-	granularity: Granularity
+	@ApiProperty({ enum: PatientGranularity })
+	@IsEnum(PatientGranularity)
+	granularity: PatientGranularity
 
 	@ApiProperty({
 		description:

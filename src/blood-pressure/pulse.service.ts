@@ -5,7 +5,7 @@ import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
 import { Model } from 'mongoose'
 import { BaseService } from 'src/base/base.service'
-import { Granularity, Status } from 'src/base/model'
+import { PatientGranularity, Status } from 'src/base/model'
 import { PulseSummary, PulseVisualizationData } from './dto/patient-visualization-pulse.dto'
 import { BloodPressure } from './schema/blood-pressure.schema'
 import { PatientLatestPulse } from './dto/patient-latest-pulse.dto'
@@ -101,7 +101,7 @@ export class PulseService extends BaseService {
 
 	async getVisualizationData(
 		patientID: number,
-		granularity: Granularity,
+		granularity: PatientGranularity,
 		sinceDate: Date,
 		toDate: Date
 	): Promise<PulseVisualizationData[]> {
@@ -115,7 +115,7 @@ export class PulseService extends BaseService {
 				},
 			},
 		]
-		if (granularity === Granularity.DAY) aggregateSteps = [{ $project: { dateTime: 1, pulse: 1 } }]
+		if (granularity === PatientGranularity.DAY) aggregateSteps = [{ $project: { dateTime: 1, pulse: 1 } }]
 
 		const results = await this.bloodPressureModel
 			.aggregate([

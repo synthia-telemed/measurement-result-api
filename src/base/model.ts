@@ -4,7 +4,7 @@ export enum Status {
 	ABNORMAL = 'Abnormal',
 }
 
-export enum Granularity {
+export enum PatientGranularity {
 	DAY = 'day',
 	WEEK = 'week',
 	MONTH = 'month',

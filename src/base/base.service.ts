@@ -1,17 +1,24 @@
 import { Injectable } from '@nestjs/common'
 import * as dayjs from 'dayjs'
 import * as utc from 'dayjs/plugin/utc'
-import { Granularity } from './model'
+import { PatientGranularity } from './model'
 dayjs.extend(utc)
 
 @Injectable()
 export class BaseService {
 	TZ = 'Asia/Bangkok'
 
-	labelTimeParser(granularity: Granularity, dateTime: Date): number {
-		if (granularity === Granularity.DAY) {
-			return dayjs(dateTime).utc().unix()
+	labelTimeParser(granularity: PatientGranularity, dateTime: Date): number {
+		const date = dayjs(dateTime).tz(this.TZ)
+		switch (granularity) {
+			case PatientGranularity.DAY:
+				return date.utc().unix()
+			default:
+				return date.startOf('day').utc().unix()
 		}
+	}
+
+	aggregatedLabelTimeParser(dateTime: Date): number {
 		return dayjs(dateTime).tz(this.TZ).startOf('day').utc().unix()
 	}
 

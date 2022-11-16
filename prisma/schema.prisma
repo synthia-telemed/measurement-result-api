@@ -8,16 +8,15 @@ datasource db {
 }
 
 model doctors {
-  id         BigInt   @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   created_at DateTime
   updated_at DateTime
   ref_id     String   @unique
 }
 
 model patients {
-  id         BigInt   @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   created_at DateTime
   updated_at DateTime
   ref_id     String   @unique
-  birth_date DateTime
 }
