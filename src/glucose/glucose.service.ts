@@ -22,6 +22,12 @@ interface GlucoseAverageResult {
 	value: number
 }
 
+type AggregatableGranularity =
+	| PatientGranularity.MONTH
+	| PatientGranularity.WEEK
+	| DoctorGranularity.THREE_MONTHS
+	| DoctorGranularity.MONTH
+	| DoctorGranularity.WEEK
 @Injectable()
 export class GlucoseService extends BaseService {
 	readonly unit = 'mg/dL'
@@ -169,15 +175,15 @@ export class GlucoseService extends BaseService {
 		}
 	}
 
-	async getVisualizationDatas(
+	async getAggregatedVisualizationDatas(
 		patientID: number,
-		granularity: PatientGranularity.MONTH | PatientGranularity.WEEK,
+		granularity: AggregatableGranularity,
 		sinceDate: Date,
 		toDate: Date
 	): Promise<GlucoseVisualizationDatas> {
 		const periods: Period[] = [Period.Fasting, Period.BeforeMeal, Period.AfterMeal]
 		const ops = periods.map(period =>
-			this.getVisualizationDataByPeriod(patientID, granularity, sinceDate, toDate, period)
+			this.getAggregatedVisualizationDataByPeriod(patientID, granularity, sinceDate, toDate, period)
 		)
 		const [fasting, beforeMeal, afterMeal] = await Promise.all(ops)
 		return {
@@ -187,9 +193,9 @@ export class GlucoseService extends BaseService {
 		}
 	}
 
-	async getVisualizationDataByPeriod(
+	async getAggregatedVisualizationDataByPeriod(
 		patientID: number,
-		granularity: PatientGranularity.MONTH | PatientGranularity.WEEK | DoctorGranularity.THREE_MONTHS,
+		granularity: AggregatableGranularity,
 		sinceDate: Date,
 		toDate: Date,
 		period: Period

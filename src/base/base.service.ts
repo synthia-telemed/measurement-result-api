@@ -12,11 +12,8 @@ export class BaseService {
 		switch (granularity) {
 			case PatientGranularity.DAY:
 				return dayjs(dateTime).utc().unix()
-			// case DoctorGranularity.THREE_MONTHS:
-			// 	return
-
 			default:
-				dayjs(dateTime).tz(this.TZ).startOf('day').utc().unix()
+				return dayjs(dateTime).tz(this.TZ).startOf('day').utc().unix()
 		}
 	}
 

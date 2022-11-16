@@ -1,11 +1,24 @@
 import * as dayjs from 'dayjs'
+import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
 import { VisualizationData } from 'src/dto/visualization-response.dto'
-import { PatientGranularity } from './model'
+import { DoctorGranularity, PatientGranularity } from './model'
 dayjs.extend(timezone)
+dayjs.extend(utc)
 
 export class BaseController {
 	TZ = 'Asia/Bangkok'
+
+	parUTCDateToDayjs(date: Date): dayjs.Dayjs {
+		return dayjs.utc(date).tz(this.TZ)
+	}
+
+	getDoctorGranularityFromDates(from: dayjs.Dayjs, to: dayjs.Dayjs): DoctorGranularity {
+		if (to.diff(from, 'month') >= 1) return DoctorGranularity.THREE_MONTHS
+		if (to.diff(from, 'week') >= 1) return DoctorGranularity.MONTH
+		return DoctorGranularity.WEEK
+	}
+
 	getXLabel(granularity: PatientGranularity, date: Date): string {
 		switch (granularity) {
 			case PatientGranularity.DAY:
