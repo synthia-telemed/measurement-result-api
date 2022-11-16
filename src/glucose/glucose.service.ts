@@ -6,7 +6,7 @@ import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
 import { CreateGlucoseDto } from './dto/create-glucose.dto'
 import { Glucose, Period } from './schema/glucose.schema'
-import { DoctorGranularity, PatientGranularity, Status } from 'src/base/model'
+import { PatientGranularity, Status } from 'src/base/model'
 import {
 	GlucoseVisualizationData,
 	GlucoseVisualizationDatas,
@@ -14,6 +14,7 @@ import {
 } from './dto/visualization-glucose.dto'
 import { BaseService } from 'src/base/base.service'
 import { PatientLatestGlucose, PatientLatestGlucoseAllPeriod } from './dto/patient-latest-glucose.dto'
+import { DoctorGlucoseStatus } from './dto/doctor-visualization.dto'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
@@ -210,5 +211,47 @@ export class GlucoseService extends BaseService {
 			label: this.aggregatedLabelTimeParser(result.dateTime),
 			value: result.value,
 		}))
+	}
+
+	async getAbnormalGlucoseResult(patientID: number, sinceDate: Date, toDate: Date) {
+		const results = await this.glucoseModel
+			.find({
+				$and: [
+					{ 'metadata.patientID': patientID },
+					{ dateTime: { $gte: sinceDate, $lte: toDate } },
+					{
+						$or: [
+							{ 'metadata.period': Period.Fasting, value: { $gte: 100 } },
+							{ 'metadata.period': Period.Fasting, value: { $lt: 69 } },
+							{ 'metadata.period': Period.BeforeMeal, value: { $gte: 240 } },
+							{ 'metadata.period': Period.BeforeMeal, value: { $lt: 70 } },
+							{ 'metadata.period': Period.AfterMeal, value: { $gte: 240 } },
+							{ 'metadata.period': Period.AfterMeal, value: { $lt: 70 } },
+						],
+					},
+				],
+			})
+			.lean()
+			.exec()
+		return results
+	}
+
+	getDoctorGlucoseStatus(period: Period, value: number): DoctorGlucoseStatus {
+		switch (period) {
+			case Period.Fasting:
+				if (value >= 126) return DoctorGlucoseStatus.HYPERGLYCEMIA
+				if (value >= 100) return DoctorGlucoseStatus.Warning
+				if (value < 69) return DoctorGlucoseStatus.HYPOGLYCEMIA
+				break
+			case Period.BeforeMeal:
+				if (value >= 240) return DoctorGlucoseStatus.HYPERGLYCEMIA
+				if (value < 70) return DoctorGlucoseStatus.HYPOGLYCEMIA
+				break
+			case Period.AfterMeal:
+				if (value >= 240) return DoctorGlucoseStatus.HYPERGLYCEMIA
+				if (value < 70) return DoctorGlucoseStatus.HYPOGLYCEMIA
+				break
+		}
+		return DoctorGlucoseStatus.NORMAL
 	}
 }

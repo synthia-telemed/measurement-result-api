@@ -9,7 +9,7 @@ dayjs.extend(utc)
 export class BaseController {
 	TZ = 'Asia/Bangkok'
 
-	parUTCDateToDayjs(date: Date): dayjs.Dayjs {
+	parseUTCDateToDayjs(date: Date): dayjs.Dayjs {
 		return dayjs.utc(date).tz(this.TZ)
 	}
 

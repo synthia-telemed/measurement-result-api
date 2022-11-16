@@ -13,6 +13,7 @@ import {
 } from '@nestjs/swagger'
 import * as dayjs from 'dayjs'
 import * as utc from 'dayjs/plugin/utc'
+import { LeanDocument } from 'mongoose'
 import { BaseController } from 'src/base/base.controller'
 import { PatientGranularity } from 'src/base/model'
 import { Roles, UserRole } from 'src/decorator/roles.decorator'
@@ -21,7 +22,11 @@ import { DoctorVisualizationRequestDto } from 'src/dto/doctor-visualization-requ
 import { PatientVisualizationRequestDto } from 'src/dto/patient-visualization-request.dto'
 import { DoctorAppointmentGuard } from 'src/guard/appointment.guard'
 import { CreateGlucoseDto } from './dto/create-glucose.dto'
-import { DoctorGlucoseVisualizationResponseDto } from './dto/doctor-visualization.dto'
+import {
+	DoctorGlucoseStatus,
+	DoctorGlucoseSummary,
+	DoctorGlucoseVisualizationResponseDto,
+} from './dto/doctor-visualization.dto'
 import {
 	GlucoseSummary,
 	GlucoseVisualizationDatas,
@@ -29,7 +34,7 @@ import {
 	GlucoseVisualizationResponseDto,
 } from './dto/visualization-glucose.dto'
 import { GlucoseService } from './glucose.service'
-import { Glucose } from './schema/glucose.schema'
+import { Glucose, Period } from './schema/glucose.schema'
 dayjs.extend(utc)
 
 @Controller('glucose')
@@ -116,13 +121,13 @@ export class GlucoseController extends BaseController {
 		@Request() { patientID },
 		@Query() { from: fromDate, to: toDate }: DoctorVisualizationRequestDto
 	): Promise<DoctorGlucoseVisualizationResponseDto> {
-		const from = this.parUTCDateToDayjs(fromDate).startOf('day')
-		const to = this.parUTCDateToDayjs(toDate).endOf('day')
-		const data = await this.glucoseService.getAggregatedVisualizationDatas(
-			patientID,
-			from.utc().toDate(),
-			to.utc().toDate()
-		)
+		const from = this.parseUTCDateToDayjs(fromDate).startOf('day')
+		const to = this.parseUTCDateToDayjs(toDate).endOf('day')
+		const [data, abnormalResults] = await Promise.all([
+			this.glucoseService.getAggregatedVisualizationDatas(patientID, from.utc().toDate(), to.utc().toDate()),
+			this.glucoseService.getAbnormalGlucoseResult(patientID, from.utc().toDate(), to.utc().toDate()),
+		])
+		const summary = this.parseAbnormalResultsToDoctorSummary(abnormalResults)
 		const { domain, ticks } = this.getDoctorDomainAndTicks(from, to)
 		return {
 			data,
@@ -130,7 +135,47 @@ export class GlucoseController extends BaseController {
 			ticks,
 			unit: this.glucoseService.unit,
 			xLabel: this.getDoctorXLabel(from, to),
-			summary: null,
+			summary,
+		}
+	}
+
+	private parseAbnormalResultsToDoctorSummary(results: LeanDocument<Glucose>[]): DoctorGlucoseSummary {
+		const summary: DoctorGlucoseSummary = {
+			fasting: { hyperglycemia: [], hypoglycemia: [], normal: [], warning: [] },
+			afterMeal: { hyperglycemia: [], hypoglycemia: [], normal: [] },
+			beforeMeal: { hyperglycemia: [], hypoglycemia: [], normal: [] },
+		}
+		for (const result of results) {
+			const { value, metadata, dateTime } = result
+			const status = this.glucoseService.getDoctorGlucoseStatus(metadata.period, value)
+			const periodKey = this.parsePeriodToDoctorSummaryKey(metadata.period)
+			const statusKey = this.parseDoctorStatusToStatusKey(status)
+			summary[periodKey][statusKey].push({ value, dateTime })
+		}
+		return summary
+	}
+
+	private parsePeriodToDoctorSummaryKey(period: Period): string {
+		switch (period) {
+			case Period.BeforeMeal:
+				return 'beforeMeal'
+			case Period.AfterMeal:
+				return 'afterMeal'
+			default:
+				return 'fasting'
+		}
+	}
+
+	private parseDoctorStatusToStatusKey(status: DoctorGlucoseStatus): string {
+		switch (status) {
+			case DoctorGlucoseStatus.HYPERGLYCEMIA:
+				return 'hyperglycemia'
+			case DoctorGlucoseStatus.HYPOGLYCEMIA:
+				return 'hypoglycemia'
+			case DoctorGlucoseStatus.Warning:
+				return 'warning'
+			default:
+				return 'normal'
 		}
 	}
 }
