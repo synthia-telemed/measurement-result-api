@@ -7,7 +7,7 @@ import * as timezone from 'dayjs/plugin/timezone'
 import { CreateBloodPressureDto } from './dto/create-blood-pressure.dto'
 import { BloodPressure } from './schema/blood-pressure.schema'
 import { BloodPressureSummary, BloodPressureVisualizationData } from './dto/patient-visualization-blood-pressure.dto'
-import { Granularity, Status } from 'src/base/model'
+import { PatientGranularity, Status } from 'src/base/model'
 import { BaseService } from 'src/base/base.service'
 import { PatientLatestBloodPressure } from './dto/patient-latest-blood-pressure.dto'
 dayjs.extend(utc)
@@ -103,7 +103,7 @@ export class BloodPressureService extends BaseService {
 
 	async getVisualizationData(
 		patientID: number,
-		granularity: Granularity,
+		granularity: PatientGranularity,
 		sinceDate: Date,
 		toDate: Date
 	): Promise<BloodPressureVisualizationData[]> {
@@ -118,7 +118,8 @@ export class BloodPressureService extends BaseService {
 				},
 			},
 		]
-		if (granularity === Granularity.DAY) aggregateSteps = [{ $project: { dateTime: 1, systolic: 1, diastolic: 1 } }]
+		if (granularity === PatientGranularity.DAY)
+			aggregateSteps = [{ $project: { dateTime: 1, systolic: 1, diastolic: 1 } }]
 
 		const results = await this.bloodPressureModel
 			.aggregate([

@@ -22,14 +22,22 @@ export class DoctorAppointmentGuard implements CanActivate {
 		])
 		if (!appointment || !doctorRefID) throw new NotFoundException()
 
-		return (
-			doctorRefID == appointment['doctorId'] &&
-			dayjs.utc().tz(this.tz).isSame(dayjs.utc(appointment['startDateTime']).tz(this.tz), 'day')
-		)
+		const isSameDoctor = doctorRefID == appointment['doctorId'] // && dayjs.utc().tz(this.tz).isSame(dayjs.utc(appointment['startDateTime']).tz(this.tz), 'day')
+		if (!isSameDoctor) return false
+
+		const patientID = await this.getPatientID(appointment['patientId'])
+		if (!patientID) return false
+		req.patientID = patientID
+		return true
 	}
 
 	private async getDoctorRefID(doctorID: number): Promise<string | null> {
 		const doctor = await this.prisma.doctors.findFirst({ where: { id: doctorID } })
 		return doctor?.ref_id ?? null
+	}
+
+	private async getPatientID(refID: string) {
+		const patient = await this.prisma.patients.findFirst({ where: { ref_id: refID } })
+		return patient?.id ?? null
 	}
 }
