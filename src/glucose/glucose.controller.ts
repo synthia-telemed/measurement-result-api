@@ -10,7 +10,7 @@ import {
 	ApiUnauthorizedResponse,
 } from '@nestjs/swagger'
 import { BaseController } from 'src/base/base.controller'
-import { Granularity } from 'src/base/model'
+import { PatientGranularity } from 'src/base/model'
 import { Roles, UserRole } from 'src/decorator/roles.decorator'
 import { User, UserInfo } from 'src/decorator/user.decorstor'
 import { PatientVisualizationRequestDto } from 'src/dto/patient-visualization-request.dto'
@@ -61,7 +61,7 @@ export class GlucoseController extends BaseController {
 
 		let data: GlucoseVisualizationDatas | GlucoseVisualizationDataWithPeriod[]
 		let summary: GlucoseSummary
-		if (granularity === Granularity.DAY) {
+		if (granularity === PatientGranularity.DAY) {
 			const [visData, lastestResult] = await Promise.all([
 				this.glucoseService.getDayVisualizationData(id, sinceDateUTC, toDateUTC),
 				this.glucoseService.getLastestResult(id, sinceDateUTC, toDateUTC),
