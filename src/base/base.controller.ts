@@ -51,10 +51,8 @@ export class BaseController {
 		let ticks: number[] = []
 		switch (granularity) {
 			case PatientGranularity.WEEK:
-				ticks = Array.from<number>({ length: 7 }).fill(0)
-				for (let d = since.clone(), i = 0; !d.isAfter(to); d = d.add(1, 'day'), i++) {
-					ticks[i] = d.startOf('day').utc().unix()
-				}
+				const dayDiff = to.diff(since, 'day')
+				ticks = Array.from<number>({ length: dayDiff + 1 }).map((_, i) => since.add(i, 'day').utc().unix())
 				break
 
 			case PatientGranularity.MONTH:
