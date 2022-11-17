@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model } from 'mongoose'
+import { LeanDocument, Model } from 'mongoose'
 import * as dayjs from 'dayjs'
 import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
@@ -139,5 +139,25 @@ export class BloodPressureService extends BaseService {
 			color: this.getColorFromBloodPressure(systolic, diastolic),
 		}))
 		return visDatas
+	}
+
+	async getAbnormalResults(patientID: number, sinceDate: Date, toDate: Date): Promise<LeanDocument<BloodPressure>[]> {
+		return await this.bloodPressureModel
+			.find({
+				$and: [
+					{ 'metadata.patientID': patientID },
+					{ dateTime: { $gte: sinceDate, $lte: toDate } },
+					{
+						$or: [
+							{ systolic: { $gt: 120 } },
+							{ systolic: { $lt: 90 } },
+							{ diastolic: { $gt: 80 } },
+							{ diastolic: { $lt: 60 } },
+						],
+					},
+				],
+			})
+			.lean()
+			.exec()
 	}
 }

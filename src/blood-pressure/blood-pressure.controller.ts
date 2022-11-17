@@ -23,6 +23,13 @@ import * as dayjs from 'dayjs'
 import * as timezone from 'dayjs/plugin/timezone'
 import { DoctorAppointmentGuard } from 'src/guard/appointment.guard'
 import { DoctorVisualizationRequestDto } from 'src/dto/doctor-visualization-request.dto'
+import { Status } from 'src/base/model'
+import { LeanDocument } from 'mongoose'
+import {
+	BloodPressureAbnormalResult,
+	BloodPressureAbnormalResultSummary,
+	DoctorBloodPressureVisualizationResponseDto,
+} from './dto/doctor-visualization-blood-pressure.dto'
 dayjs.extend(timezone)
 
 @Controller('blood-pressure')
@@ -52,7 +59,7 @@ export class BloodPressureController extends BaseController {
 	@ApiTags('Doctor')
 	@ApiBearerAuth()
 	@ApiParam({ name: 'appointmentID', type: 'string' })
-	@ApiOkResponse({ type: BloodPressureVisualizationResponseDto })
+	@ApiOkResponse({ type: DoctorBloodPressureVisualizationResponseDto })
 	@ApiBadRequestResponse({ description: 'Invalid data' })
 	@ApiForbiddenResponse({ description: 'Forbidden' })
 	@ApiUnauthorizedResponse({ description: 'Unauthorized' })
@@ -60,14 +67,15 @@ export class BloodPressureController extends BaseController {
 	async getDoctorBloodPressurePatientVisualization(
 		@Request() { patientID },
 		@Query() { from: fromDate, to: toDate }: DoctorVisualizationRequestDto
-	): Promise<BloodPressureVisualizationResponseDto> {
+	): Promise<DoctorBloodPressureVisualizationResponseDto> {
 		const from = this.parseUTCDateToDayjs(fromDate).startOf('day')
 		const to = this.parseUTCDateToDayjs(toDate).endOf('day')
 		const fromDateUTC = from.utc().toDate()
 		const toDateUTC = to.utc().toDate()
-		const [summary, data] = await Promise.all([
+		const [summary, data, abnormalResults] = await Promise.all([
 			this.bloodPressureService.getAverage(patientID, fromDateUTC, toDateUTC),
 			this.bloodPressureService.getVisualizationData(patientID, fromDateUTC, toDateUTC, true),
+			this.bloodPressureService.getAbnormalResults(patientID, fromDate, toDateUTC),
 		])
 		const { domain, ticks } = this.getDoctorDomainAndTicks(from, to)
 		return {
@@ -77,6 +85,34 @@ export class BloodPressureController extends BaseController {
 			ticks,
 			xLabel: this.getDoctorXLabel(from, to),
 			unit: this.bloodPressureService.unit,
+			abnormalResults: this.parseAbnormalResultsToAbnormalResultSummary(abnormalResults),
+		}
+	}
+
+	private parseAbnormalResultsToAbnormalResultSummary(
+		results: LeanDocument<BloodPressure>[]
+	): BloodPressureAbnormalResultSummary {
+		const summary: BloodPressureAbnormalResultSummary = {
+			abnormal: [],
+			warning: [],
+		}
+		for (const { dateTime, systolic, diastolic } of results) {
+			const status = this.bloodPressureService.getStatusFromBloodPressure(systolic, diastolic)
+			const abnormalResultKey = this.parseStatusToAbnormalResultKey(status)
+			const abnormalResult: BloodPressureAbnormalResult = { dateTime, systolic, diastolic }
+			summary[abnormalResultKey].push(abnormalResult)
+		}
+		return summary
+	}
+
+	private parseStatusToAbnormalResultKey(status: Status): string {
+		switch (status) {
+			case Status.ABNORMAL:
+				return 'abnormal'
+			case Status.WARNING:
+				return 'warning'
+			default:
+				return 'normal'
 		}
 	}
 
