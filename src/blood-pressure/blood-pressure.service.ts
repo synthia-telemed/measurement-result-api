@@ -108,7 +108,7 @@ export class BloodPressureService extends BaseService {
 		isAggregate: boolean
 	): Promise<BloodPressureVisualizationData[]> {
 		let aggregateSteps: any[] = [
-			{ $addFields: { index: { $dayOfMonth: { date: '$dateTime', timezone: this.TZ } } } },
+			{ $addFields: { index: { $dayOfYear: { date: '$dateTime', timezone: this.TZ } } } },
 			{
 				$group: {
 					_id: '$index',
