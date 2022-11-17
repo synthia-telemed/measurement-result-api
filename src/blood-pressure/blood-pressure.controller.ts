@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Post, Query, Request, UseGuards } from '@nestjs/common'
 import {
 	ApiBadRequestResponse,
 	ApiBearerAuth,
@@ -20,6 +20,7 @@ import { BaseController } from 'src/base/base.controller'
 import * as dayjs from 'dayjs'
 import * as timezone from 'dayjs/plugin/timezone'
 import { DoctorAppointmentGuard } from 'src/guard/appointment.guard'
+import { DoctorVisualizationRequestDto } from 'src/dto/doctor-visualization-request.dto'
 dayjs.extend(timezone)
 
 @Controller('blood-pressure')
@@ -45,9 +46,20 @@ export class BloodPressureController extends BaseController {
 	@Get('/visualization/doctor/:appointmentID')
 	@Roles(UserRole.DOCTOR)
 	@UseGuards(DoctorAppointmentGuard)
-	async getDoctorBloodPressurePatientVisualization(@User() { id }: UserInfo): Promise<any> {
+	async getDoctorBloodPressurePatientVisualization(
+		@Request() { patientID },
+		@Query() { from: fromDate, to: toDate }: DoctorVisualizationRequestDto
+	): Promise<any> {
+		const from = this.parseUTCDateToDayjs(fromDate).startOf('day')
+		const to = this.parseUTCDateToDayjs(toDate).endOf('day')
+		const fromDateUTC = from.utc().toDate()
+		const toDateUTC = to.utc().toDate()
+		const [summary, data] = await Promise.all([
+			this.bloodPressureService.getAverage(patientID, fromDateUTC, toDateUTC),
+			this.bloodPressureService.getVisualizationData(patientID, fromDateUTC, toDateUTC, true),
+		])
 		// await this.bloodPressureService.getPatientIDFromAppointment(id, appointmentID)
-		return { success: true }
+		return { summary, data }
 	}
 
 	@Get('/visualization/patient')
@@ -67,7 +79,7 @@ export class BloodPressureController extends BaseController {
 
 		const [summary, data] = await Promise.all([
 			this.bloodPressureService.getAverage(id, sinceDateUTC, toDateUTC),
-			this.bloodPressureService.getVisualizationData(id, granularity, sinceDateUTC, toDateUTC),
+			this.bloodPressureService.getVisualizationData(id, sinceDateUTC, toDateUTC, this.isAggregate(granularity)),
 		])
 		const { domain, ticks } = this.getDomainAndTicks(granularity, date, data.length > 0 ? data[0] : null)
 		return {
