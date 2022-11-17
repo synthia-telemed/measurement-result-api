@@ -106,7 +106,7 @@ export class PulseService extends BaseService {
 		isAggregate: boolean
 	): Promise<PulseVisualizationData[]> {
 		let aggregateSteps: any[] = [
-			{ $addFields: { index: { $dayOfMonth: { date: '$dateTime', timezone: this.TZ } } } },
+			{ $addFields: { index: { $dayOfYear: { date: '$dateTime', timezone: this.TZ } } } },
 			{
 				$group: {
 					_id: '$index',
