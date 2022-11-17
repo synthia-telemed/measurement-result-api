@@ -3,9 +3,11 @@ import {
 	ApiBadRequestResponse,
 	ApiBearerAuth,
 	ApiCreatedResponse,
+	ApiForbiddenResponse,
 	ApiInternalServerErrorResponse,
 	ApiOkResponse,
 	ApiOperation,
+	ApiParam,
 	ApiTags,
 	ApiUnauthorizedResponse,
 } from '@nestjs/swagger'
@@ -46,10 +48,19 @@ export class BloodPressureController extends BaseController {
 	@Get('/visualization/doctor/:appointmentID')
 	@Roles(UserRole.DOCTOR)
 	@UseGuards(DoctorAppointmentGuard)
+	@ApiOperation({ summary: 'Get doctor blood pressure visualization' })
+	@ApiTags('Doctor')
+	@ApiBearerAuth()
+	@ApiParam({ name: 'appointmentID', type: 'string' })
+	@ApiOkResponse({ type: BloodPressureVisualizationResponseDto })
+	@ApiBadRequestResponse({ description: 'Invalid data' })
+	@ApiForbiddenResponse({ description: 'Forbidden' })
+	@ApiUnauthorizedResponse({ description: 'Unauthorized' })
+	@ApiInternalServerErrorResponse({ description: 'Internal server error' })
 	async getDoctorBloodPressurePatientVisualization(
 		@Request() { patientID },
 		@Query() { from: fromDate, to: toDate }: DoctorVisualizationRequestDto
-	): Promise<any> {
+	): Promise<BloodPressureVisualizationResponseDto> {
 		const from = this.parseUTCDateToDayjs(fromDate).startOf('day')
 		const to = this.parseUTCDateToDayjs(toDate).endOf('day')
 		const fromDateUTC = from.utc().toDate()
@@ -58,8 +69,15 @@ export class BloodPressureController extends BaseController {
 			this.bloodPressureService.getAverage(patientID, fromDateUTC, toDateUTC),
 			this.bloodPressureService.getVisualizationData(patientID, fromDateUTC, toDateUTC, true),
 		])
-		// await this.bloodPressureService.getPatientIDFromAppointment(id, appointmentID)
-		return { summary, data }
+		const { domain, ticks } = this.getDoctorDomainAndTicks(from, to)
+		return {
+			summary,
+			data,
+			domain,
+			ticks,
+			xLabel: this.getDoctorXLabel(from, to),
+			unit: this.bloodPressureService.unit,
+		}
 	}
 
 	@Get('/visualization/patient')
