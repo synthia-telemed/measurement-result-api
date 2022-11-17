@@ -6,7 +6,7 @@ import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
 import { CreateGlucoseDto } from './dto/create-glucose.dto'
 import { Glucose, Period } from './schema/glucose.schema'
-import { PatientGranularity, Status } from 'src/base/model'
+import { Status } from 'src/base/model'
 import {
 	GlucoseVisualizationData,
 	GlucoseVisualizationDatas,
