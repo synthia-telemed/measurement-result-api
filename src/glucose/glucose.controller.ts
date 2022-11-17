@@ -66,7 +66,7 @@ export class GlucoseController extends BaseController {
 	@ApiBadRequestResponse({ description: 'Invalid data' })
 	@ApiUnauthorizedResponse({ description: 'Unauthorized' })
 	@ApiInternalServerErrorResponse({ description: 'Internal server error' })
-	async getBloodPressurePatientVisualization(
+	async getPatientGlucoseVisualization(
 		@User() { id }: UserInfo,
 		@Query() { date, granularity }: PatientVisualizationRequestDto
 	): Promise<GlucoseVisualizationResponseDto> {

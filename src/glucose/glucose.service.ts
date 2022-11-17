@@ -6,7 +6,7 @@ import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
 import { CreateGlucoseDto } from './dto/create-glucose.dto'
 import { Glucose, Period } from './schema/glucose.schema'
-import { PatientGranularity, Status } from 'src/base/model'
+import { Status } from 'src/base/model'
 import {
 	GlucoseVisualizationData,
 	GlucoseVisualizationDatas,
@@ -153,7 +153,7 @@ export class GlucoseService extends BaseService {
 			.lean()
 			.exec()
 		return results.map(result => ({
-			label: this.labelTimeParser(PatientGranularity.DAY, result.dateTime),
+			label: this.labelTimeParser(false, result.dateTime),
 			value: result.value,
 			period: this.parsePeriodToDisplayable(result.metadata.period),
 		}))
@@ -208,7 +208,7 @@ export class GlucoseService extends BaseService {
 			])
 			.exec()
 		return results.map(result => ({
-			label: this.aggregatedLabelTimeParser(result.dateTime),
+			label: this.labelTimeParser(true, result.dateTime),
 			value: result.value,
 		}))
 	}
