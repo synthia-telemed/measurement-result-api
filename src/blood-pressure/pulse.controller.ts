@@ -59,10 +59,11 @@ export class PulseController extends BaseController {
 	@Get('/visualization/doctor/:appointmentID')
 	@Roles(UserRole.DOCTOR)
 	@UseGuards(DoctorAppointmentGuard)
-	@ApiOperation({ summary: 'Get doctor blood pressure visualization' })
+	@ApiOperation({ summary: 'Get doctor pulse visualization' })
 	@ApiTags('Doctor')
 	@ApiBearerAuth()
 	@ApiParam({ name: 'appointmentID', type: 'string' })
+	@ApiOkResponse({ type: PulseVisualizationResponseDto })
 	@ApiBadRequestResponse({ description: 'Invalid data' })
 	@ApiForbiddenResponse({ description: 'Forbidden' })
 	@ApiUnauthorizedResponse({ description: 'Unauthorized' })
@@ -70,7 +71,7 @@ export class PulseController extends BaseController {
 	async getDoctorPulseVisualization(
 		@Request() { patientID },
 		@Query() { from: fromDate, to: toDate }: DoctorVisualizationRequestDto
-	): Promise<any> {
+	): Promise<PulseVisualizationResponseDto> {
 		const from = this.parseUTCDateToDayjs(fromDate).startOf('day')
 		const to = this.parseUTCDateToDayjs(toDate).endOf('day')
 		const fromDateUTC = from.utc().toDate()
