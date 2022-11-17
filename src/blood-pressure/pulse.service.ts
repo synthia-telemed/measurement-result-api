@@ -5,7 +5,7 @@ import * as utc from 'dayjs/plugin/utc'
 import * as timezone from 'dayjs/plugin/timezone'
 import { Model } from 'mongoose'
 import { BaseService } from 'src/base/base.service'
-import { PatientGranularity, Status } from 'src/base/model'
+import { Status } from 'src/base/model'
 import { PulseSummary, PulseVisualizationData } from './dto/patient-visualization-pulse.dto'
 import { BloodPressure } from './schema/blood-pressure.schema'
 import { PatientLatestPulse } from './dto/patient-latest-pulse.dto'
@@ -101,9 +101,9 @@ export class PulseService extends BaseService {
 
 	async getVisualizationData(
 		patientID: number,
-		granularity: PatientGranularity,
 		sinceDate: Date,
-		toDate: Date
+		toDate: Date,
+		isAggregate: boolean
 	): Promise<PulseVisualizationData[]> {
 		let aggregateSteps: any[] = [
 			{ $addFields: { index: { $dayOfMonth: { date: '$dateTime', timezone: this.TZ } } } },
@@ -115,7 +115,7 @@ export class PulseService extends BaseService {
 				},
 			},
 		]
-		if (granularity === PatientGranularity.DAY) aggregateSteps = [{ $project: { dateTime: 1, pulse: 1 } }]
+		if (!isAggregate) aggregateSteps = [{ $project: { dateTime: 1, pulse: 1 } }]
 
 		const results = await this.bloodPressureModel
 			.aggregate([
@@ -131,7 +131,7 @@ export class PulseService extends BaseService {
 			.exec()
 		const age = await this.getPatientAge(patientID)
 		return results.map(({ dateTime, pulse }) => ({
-			label: this.labelTimeParser(granularity, dateTime),
+			label: this.labelTimeParser(isAggregate, dateTime),
 			values: pulse,
 			color: this.getColorFromPulse(pulse, age),
 		}))

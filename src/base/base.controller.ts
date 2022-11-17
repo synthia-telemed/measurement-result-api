@@ -9,6 +9,10 @@ dayjs.extend(utc)
 export class BaseController {
 	TZ = 'Asia/Bangkok'
 
+	isAggregate(granularity: PatientGranularity): boolean {
+		return granularity !== PatientGranularity.DAY
+	}
+
 	parseUTCDateToDayjs(date: Date): dayjs.Dayjs {
 		return dayjs.utc(date).tz(this.TZ)
 	}

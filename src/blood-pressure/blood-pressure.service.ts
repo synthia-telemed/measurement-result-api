@@ -7,7 +7,7 @@ import * as timezone from 'dayjs/plugin/timezone'
 import { CreateBloodPressureDto } from './dto/create-blood-pressure.dto'
 import { BloodPressure } from './schema/blood-pressure.schema'
 import { BloodPressureSummary, BloodPressureVisualizationData } from './dto/patient-visualization-blood-pressure.dto'
-import { PatientGranularity, Status } from 'src/base/model'
+import { Status } from 'src/base/model'
 import { BaseService } from 'src/base/base.service'
 import { PatientLatestBloodPressure } from './dto/patient-latest-blood-pressure.dto'
 dayjs.extend(utc)
@@ -103,9 +103,9 @@ export class BloodPressureService extends BaseService {
 
 	async getVisualizationData(
 		patientID: number,
-		granularity: PatientGranularity,
 		sinceDate: Date,
-		toDate: Date
+		toDate: Date,
+		isAggregate: boolean
 	): Promise<BloodPressureVisualizationData[]> {
 		let aggregateSteps: any[] = [
 			{ $addFields: { index: { $dayOfMonth: { date: '$dateTime', timezone: this.TZ } } } },
@@ -118,8 +118,7 @@ export class BloodPressureService extends BaseService {
 				},
 			},
 		]
-		if (granularity === PatientGranularity.DAY)
-			aggregateSteps = [{ $project: { dateTime: 1, systolic: 1, diastolic: 1 } }]
+		if (!isAggregate) aggregateSteps = [{ $project: { dateTime: 1, systolic: 1, diastolic: 1 } }]
 
 		const results = await this.bloodPressureModel
 			.aggregate([
@@ -135,7 +134,7 @@ export class BloodPressureService extends BaseService {
 			.exec()
 
 		const visDatas: BloodPressureVisualizationData[] = results.map(({ dateTime, systolic, diastolic }) => ({
-			label: this.labelTimeParser(granularity, dateTime),
+			label: this.labelTimeParser(isAggregate, dateTime),
 			values: [diastolic, systolic],
 			color: this.getColorFromBloodPressure(systolic, diastolic),
 		}))

@@ -39,7 +39,7 @@ export class PulseController extends BaseController {
 
 		const [summary, data] = await Promise.all([
 			this.pulseService.getSummary(id, sinceDateUTC, toDateUTC),
-			this.pulseService.getVisualizationData(id, granularity, sinceDateUTC, toDateUTC),
+			this.pulseService.getVisualizationData(id, sinceDateUTC, toDateUTC, this.isAggregate(granularity)),
 		])
 		const { domain, ticks } = this.getDomainAndTicks(granularity, date, data.length > 0 ? data[0] : null)
 		return {
