@@ -1,10 +1,12 @@
-import { Controller, Get, Query } from '@nestjs/common'
+import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common'
 import {
 	ApiBadRequestResponse,
 	ApiBearerAuth,
+	ApiForbiddenResponse,
 	ApiInternalServerErrorResponse,
 	ApiOkResponse,
 	ApiOperation,
+	ApiParam,
 	ApiTags,
 	ApiUnauthorizedResponse,
 } from '@nestjs/swagger'
@@ -14,6 +16,8 @@ import { User, UserInfo } from 'src/decorator/user.decorstor'
 import { PulseVisualizationResponseDto } from './dto/patient-visualization-pulse.dto'
 import { PatientVisualizationRequestDto } from '../dto/patient-visualization-request.dto'
 import { PulseService } from './pulse.service'
+import { DoctorAppointmentGuard } from 'src/guard/appointment.guard'
+import { DoctorVisualizationRequestDto } from 'src/dto/doctor-visualization-request.dto'
 
 @Controller('pulse')
 @ApiTags('Pulse')
@@ -44,6 +48,40 @@ export class PulseController extends BaseController {
 		const { domain, ticks } = this.getDomainAndTicks(granularity, date, data.length > 0 ? data[0] : null)
 		return {
 			xLabel: this.getXLabel(granularity, date),
+			unit: this.pulseService.unit,
+			data,
+			summary,
+			ticks,
+			domain,
+		}
+	}
+
+	@Get('/visualization/doctor/:appointmentID')
+	@Roles(UserRole.DOCTOR)
+	@UseGuards(DoctorAppointmentGuard)
+	@ApiOperation({ summary: 'Get doctor blood pressure visualization' })
+	@ApiTags('Doctor')
+	@ApiBearerAuth()
+	@ApiParam({ name: 'appointmentID', type: 'string' })
+	@ApiBadRequestResponse({ description: 'Invalid data' })
+	@ApiForbiddenResponse({ description: 'Forbidden' })
+	@ApiUnauthorizedResponse({ description: 'Unauthorized' })
+	@ApiInternalServerErrorResponse({ description: 'Internal server error' })
+	async getDoctorPulseVisualization(
+		@Request() { patientID },
+		@Query() { from: fromDate, to: toDate }: DoctorVisualizationRequestDto
+	): Promise<any> {
+		const from = this.parseUTCDateToDayjs(fromDate).startOf('day')
+		const to = this.parseUTCDateToDayjs(toDate).endOf('day')
+		const fromDateUTC = from.utc().toDate()
+		const toDateUTC = to.utc().toDate()
+		const [summary, data] = await Promise.all([
+			this.pulseService.getSummary(patientID, fromDate, toDateUTC),
+			this.pulseService.getVisualizationData(patientID, fromDateUTC, toDateUTC, true),
+		])
+		const { domain, ticks } = this.getDoctorDomainAndTicks(from, to)
+		return {
+			xLabel: this.getDoctorXLabel(from, to),
 			unit: this.pulseService.unit,
 			data,
 			summary,
