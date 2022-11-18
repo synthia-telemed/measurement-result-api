@@ -77,7 +77,7 @@ export class PulseController extends BaseController {
 		const fromDateUTC = from.utc().toDate()
 		const toDateUTC = to.utc().toDate()
 		const [summary, data] = await Promise.all([
-			this.pulseService.getSummary(patientID, fromDate, toDateUTC),
+			this.pulseService.getSummary(patientID, fromDateUTC, toDateUTC),
 			this.pulseService.getVisualizationData(patientID, fromDateUTC, toDateUTC, true),
 		])
 		const { domain, ticks } = this.getDoctorDomainAndTicks(from, to)
